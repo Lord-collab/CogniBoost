@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="CogniBoost.Pages.WelcomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Shell.NavBarIsVisible="False"
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="{StaticResource BrandIndigo}">
+
+    <Grid Padding="28" RowDefinitions="*,Auto">
+
+        <VerticalStackLayout Grid.Row="0" VerticalOptions="Center" Spacing="16">
+            <Label Text="🧠" FontSize="72" HorizontalOptions="Center" />
+            <Label
+                Text="CogniBoost"
+                FontSize="36"
+                FontAttributes="Bold"
+                TextColor="White"
+                HorizontalOptions="Center" />
+            <Label
+                Text="Тренируй память, внимание, логику и язык каждый день"
+                FontSize="16"
+                TextColor="#E0E7FF"
+                HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="12">
+            <Button
+                Text="Создать аккаунт"
+                Clicked="OnRegisterClicked"
+                BackgroundColor="White"
+                TextColor="{StaticResource BrandIndigo}"
+                FontAttributes="Bold"
+                HeightRequest="52"
+                CornerRadius="14" />
+            <Button
+                Text="У меня уже есть аккаунт"
+                Clicked="OnLoginClicked"
+                BackgroundColor="Transparent"
+                TextColor="White"
+                BorderColor="White"
+                BorderWidth="1"
+                HeightRequest="52"
+                CornerRadius="14" />
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

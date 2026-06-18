@@ -1,0 +1,20 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.vs/
+.vscode/
+*.DotSettings.user
+
+## NuGet
+packages/
+*.nupkg
+
+## macOS
+.DS_Store
+
+## Android
+*.apk
+*.aab
+local.properties

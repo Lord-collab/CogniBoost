@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="CogniBoost.Pages.OnboardingPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Shell.NavBarIsVisible="False"
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="{StaticResource PageBackgroundLight}">
+
+    <Grid Padding="24" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="14">
+
+        <Label
+            Grid.Row="0"
+            Text="Что хочешь развивать?"
+            FontSize="26"
+            FontAttributes="Bold"
+            TextColor="{StaticResource TextPrimaryLight}" />
+
+        <Label
+            Grid.Row="1"
+            Text="Выбери одно или несколько направлений. Можно изменить позже."
+            FontSize="14"
+            TextColor="{StaticResource TextMutedLight}" />
+
+        <CollectionView
+            Grid.Row="2"
+            x:Name="SkillsCollection"
+            SelectionMode="None"
+            Margin="0,8,0,0">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="1" VerticalItemSpacing="12" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border
+                        StrokeShape="RoundRectangle 16"
+                        StrokeThickness="2"
+                        Stroke="{Binding BorderColor}"
+                        BackgroundColor="{Binding CardColor}"
+                        Padding="16">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnSkillTapped" />
+                        </Border.GestureRecognizers>
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                            <Label Grid.Column="0" Text="{Binding Emoji}" FontSize="34" VerticalOptions="Center" />
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource TextPrimaryLight}" />
+                                <Label Text="{Binding Description}" FontSize="13" TextColor="{StaticResource TextMutedLight}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="2" Text="{Binding CheckMark}" FontSize="22" VerticalOptions="Center" TextColor="{Binding AccentColor}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button
+            Grid.Row="3"
+            x:Name="ContinueButton"
+            Text="Продолжить"
+            Clicked="OnContinueClicked"
+            BackgroundColor="{StaticResource BrandIndigo}"
+            TextColor="White"
+            FontAttributes="Bold"
+            HeightRequest="52"
+            CornerRadius="14"
+            IsEnabled="False" />
+
+    </Grid>
+</ContentPage>

@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════
+         CogniBoost — Design Tokens v2
+         Modern palette: Indigo × Cyan × Emerald
+         ═══════════════════════════════════════════════════════ -->
+
+    <!-- Brand core -->
+    <Color x:Key="Primary">#4F46E5</Color>
+    <Color x:Key="PrimaryLight">#EEF2FF</Color>
+    <Color x:Key="PrimaryDark">#6366F1</Color>
+    <Color x:Key="PrimaryDarkText">#F9FAFB</Color>
+    <Color x:Key="Secondary">#06B6D4</Color>
+    <Color x:Key="SecondaryDark">#22D3EE</Color>
+    <Color x:Key="Tertiary">#7C3AED</Color>
+
+    <!-- Semantic -->
+    <Color x:Key="Success">#10B981</Color>
+    <Color x:Key="SuccessLight">#D1FAE5</Color>
+    <Color x:Key="Warning">#F59E0B</Color>
+    <Color x:Key="WarningLight">#FEF3C7</Color>
+    <Color x:Key="Error">#EF4444</Color>
+    <Color x:Key="ErrorLight">#FEE2E2</Color>
+    <Color x:Key="Info">#3B82F6</Color>
+    <Color x:Key="InfoLight">#DBEAFE</Color>
+
+    <!-- Surfaces — Light -->
+    <Color x:Key="PageBackgroundLight">#FAFAFA</Color>
+    <Color x:Key="CardBackgroundLight">#FFFFFF</Color>
+    <Color x:Key="CardSecondaryLight">#F9FAFB</Color>
+    <Color x:Key="CardBorderLight">#E5E7EB</Color>
+    <Color x:Key="DividerLight">#E5E7EB</Color>
+    <Color x:Key="TextPrimaryLight">#111827</Color>
+    <Color x:Key="TextSecondaryLight">#6B7280</Color>
+    <Color x:Key="TextMutedLight">#9CA3AF</Color>
+    <Color x:Key="TextOnPrimaryLight">#FFFFFF</Color>
+
+    <!-- Surfaces — Dark -->
+    <Color x:Key="PageBackgroundDark">#0B0F1A</Color>
+    <Color x:Key="CardBackgroundDark">#111827</Color>
+    <Color x:Key="CardSecondaryDark">#1F2937</Color>
+    <Color x:Key="CardBorderDark">#374151</Color>
+    <Color x:Key="DividerDark">#374151</Color>
+    <Color x:Key="TextPrimaryDark">#F9FAFB</Color>
+    <Color x:Key="TextSecondaryDark">#9CA3AF</Color>
+    <Color x:Key="TextMutedDark">#6B7280</Color>
+    <Color x:Key="TextOnPrimaryDark">#FFFFFF</Color>
+
+    <!-- Cognitive skill colors -->
+    <Color x:Key="SkillMemoryLight">#3B82F6</Color>
+    <Color x:Key="SkillMemoryDark">#60A5FA</Color>
+    <Color x:Key="SkillFocusLight">#10B981</Color>
+    <Color x:Key="SkillFocusDark">#34D399</Color>
+    <Color x:Key="SkillLanguageLight">#F97316</Color>
+    <Color x:Key="SkillLanguageDark">#FB923C</Color>
+    <Color x:Key="SkillLogicLight">#8B5CF6</Color>
+    <Color x:Key="SkillLogicDark">#A78BFA</Color>
+    <Color x:Key="SkillSpeedLight">#EF4444</Color>
+    <Color x:Key="SkillSpeedDark">#F87171</Color>
+
+    <!-- Legacy aliases (keep existing code compiling) -->
+    <Color x:Key="White">White</Color>
+    <Color x:Key="Black">Black</Color>
+
+    <Color x:Key="BrandIndigo">#4F46E5</Color>
+    <Color x:Key="BrandViolet">#8B5CF6</Color>
+    <Color x:Key="BrandTeal">#06B6D4</Color>
+    <Color x:Key="BrandPink">#EC4899</Color>
+    <Color x:Key="BrandAmber">#F59E0B</Color>
+    <Color x:Key="BrandGreen">#10B981</Color>
+    <Color x:Key="BrandBlue">#3B82F6</Color>
+    <Color x:Key="BrandRed">#EF4444</Color>
+    <Color x:Key="BrandOrange">#F97316</Color>
+
+    <Color x:Key="Gray50">#F9FAFB</Color>
+    <Color x:Key="Gray100">#F3F4F6</Color>
+    <Color x:Key="Gray200">#E5E7EB</Color>
+    <Color x:Key="Gray300">#D1D5DB</Color>
+    <Color x:Key="Gray400">#9CA3AF</Color>
+    <Color x:Key="Gray500">#6B7280</Color>
+    <Color x:Key="Gray600">#4B5563</Color>
+    <Color x:Key="Gray700">#374151</Color>
+    <Color x:Key="Gray800">#1F2937</Color>
+    <Color x:Key="Gray900">#111827</Color>
+    <Color x:Key="Gray950">#0B0F1A</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="PrimaryBrush"       Color="{StaticResource Primary}"/>
+    <SolidColorBrush x:Key="SecondaryBrush"     Color="{StaticResource Secondary}"/>
+    <SolidColorBrush x:Key="TertiaryBrush"      Color="{StaticResource Tertiary}"/>
+    <SolidColorBrush x:Key="SuccessBrush"       Color="{StaticResource Success}"/>
+    <SolidColorBrush x:Key="WarningBrush"       Color="{StaticResource Warning}"/>
+    <SolidColorBrush x:Key="ErrorBrush"         Color="{StaticResource Error}"/>
+    <SolidColorBrush x:Key="WhiteBrush"         Color="{StaticResource White}"/>
+    <SolidColorBrush x:Key="BlackBrush"         Color="{StaticResource Black}"/>
+    <SolidColorBrush x:Key="Gray100Brush"       Color="{StaticResource Gray100}"/>
+    <SolidColorBrush x:Key="Gray200Brush"       Color="{StaticResource Gray200}"/>
+    <SolidColorBrush x:Key="Gray300Brush"       Color="{StaticResource Gray300}"/>
+    <SolidColorBrush x:Key="Gray400Brush"       Color="{StaticResource Gray400}"/>
+    <SolidColorBrush x:Key="Gray500Brush"       Color="{StaticResource Gray500}"/>
+    <SolidColorBrush x:Key="Gray600Brush"       Color="{StaticResource Gray600}"/>
+
+</ResourceDictionary>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="CogniBoost.Pages.StatsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Прогресс"
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}">
+
+    <ScrollView>
+        <VerticalStackLayout x:Name="Root" Padding="20,16" Spacing="16">
+
+            <Label Text="Прогресс" FontSize="28" FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+
+            <!-- Индекс мозга — круговой прогресс + цифры -->
+            <Border StrokeShape="RoundRectangle 20" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="20">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="20">
+                    <GraphicsView x:Name="ProgressRingView" HeightRequest="100" WidthRequest="100" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                        <Label Text="Индекс мозга" FontSize="13"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+                        <Label x:Name="OverallLabel" Text="0"
+                               FontSize="32" FontAttributes="Bold"
+                               TextColor="{StaticResource Primary}" />
+                        <Label x:Name="RankLabel" Text=""
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Статистика (2 колонки) -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Border Grid.Column="0" StrokeShape="RoundRectangle 14" Stroke="Transparent"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="🎮" FontSize="22" />
+                        <Label x:Name="GamesPlayedLabel" Text="0"
+                               FontSize="24" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                        <Label Text="Сыграно игр" FontSize="11"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="1" StrokeShape="RoundRectangle 14" Stroke="Transparent"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="⭐" FontSize="22" />
+                        <Label x:Name="PointsLabel" Text="0"
+                               FontSize="24" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                        <Label Text="Всего бонусов" FontSize="11"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Таблица лидеров -->
+            <Button Text="🏆  Таблица лидеров" Clicked="OnLeaderboardClicked"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White" HeightRequest="50" CornerRadius="14" FontAttributes="Bold" />
+
+            <!-- График динамики -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Динамика" FontSize="15" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                        <Label x:Name="ChartPeriodLabel" Text="последние 14 игр" FontSize="11"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                               Grid.Column="1" VerticalOptions="Center" />
+                    </Grid>
+                    <GraphicsView x:Name="ChartView" HeightRequest="130" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Навыки -->
+            <Label Text="Навыки" FontSize="17" FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+            <VerticalStackLayout x:Name="SkillsLayout" Spacing="12" />
+
+            <!-- История -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8" Margin="0,4,0,0">
+                <Button Grid.Column="0" x:Name="TabGamesBtn" Text="Игры"
+                        Clicked="OnTabGames"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White" HeightRequest="38" CornerRadius="10"
+                        FontSize="13" Padding="0" />
+                <Button Grid.Column="1" x:Name="TabTestsBtn" Text="Тесты"
+                        Clicked="OnTabTests"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                        TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                        HeightRequest="38" CornerRadius="10"
+                        FontSize="13" Padding="0"
+                        BorderColor="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}" BorderWidth="1" />
+            </Grid>
+
+            <VerticalStackLayout x:Name="HistoryLayout" Spacing="10" Padding="0,0,0,20" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

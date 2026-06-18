@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="CogniBoost.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:pages="clr-namespace:CogniBoost.Pages"
+    Shell.TabBarBackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+    Shell.TabBarForegroundColor="{StaticResource Primary}"
+    Shell.TabBarTitleColor="{StaticResource Primary}"
+    Shell.TabBarUnselectedColor="{StaticResource Gray400}"
+    Title="CogniBoost">
+
+    <TabBar>
+        <ShellContent
+            Title="Главная"
+            Route="home"
+            Icon="{x:Null}"
+            ContentTemplate="{DataTemplate pages:TrainingPage}" />
+
+        <ShellContent
+            Title="Игры"
+            Route="games"
+            Icon="{x:Null}"
+            ContentTemplate="{DataTemplate pages:GamesPage}" />
+
+        <ShellContent
+            Title="Тесты"
+            Route="tests"
+            Icon="{x:Null}"
+            ContentTemplate="{DataTemplate pages:TestsPage}" />
+
+        <ShellContent
+            Title="Прогресс"
+            Route="stats"
+            Icon="{x:Null}"
+            ContentTemplate="{DataTemplate pages:StatsPage}" />
+
+        <ShellContent
+            Title="Профиль"
+            Route="profile"
+            Icon="{x:Null}"
+            ContentTemplate="{DataTemplate pages:ProfilePage}" />
+    </TabBar>
+
+</Shell>

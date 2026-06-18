@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="CogniBoost.Pages.TestsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Тесты"
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}">
+
+    <ScrollView>
+        <VerticalStackLayout x:Name="Root" Padding="20,16" Spacing="16">
+
+            <Label Text="Тесты на IQ" FontSize="28" FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+
+            <!-- Статистика тестов -->
+            <Border StrokeShape="RoundRectangle 20" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="20">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20">
+                    <Border x:Name="IqRingBorder" StrokeShape="RoundRectangle 14" Stroke="Transparent"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryLight}, Dark={StaticResource Gray900}}"
+                            WidthRequest="80" HeightRequest="80" VerticalOptions="Center">
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="0">
+                            <Label x:Name="BestIqLabel" Text="—" FontSize="28" FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}" HorizontalTextAlignment="Center" />
+                            <Label Text="IQ" FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondaryLight}, Dark={StaticResource TextSecondaryDark}}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                        <Label x:Name="RankLabel" Text="Пройди первый тест" FontSize="15" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                        <Label x:Name="TestsCountLabel" Text="0 тестов пройдено" FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2" x:Name="BestDateLabel" Text="" FontSize="11"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!-- Доступные тесты -->
+            <Label Text="Доступные тесты" FontSize="17" FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                   Margin="0,4,0,0" />
+            <VerticalStackLayout x:Name="TestsLayout" Spacing="12" />
+
+            <!-- История -->
+            <Label Text="История" FontSize="17" FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                   Margin="0,4,0,0" />
+            <VerticalStackLayout x:Name="HistoryLayout" Spacing="10" Padding="0,0,0,20" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

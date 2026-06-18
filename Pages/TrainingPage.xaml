@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage
+    x:Class="CogniBoost.Pages.TrainingPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Главная"
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,16" Spacing="14">
+
+            <!-- Приветствие -->
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                <Border Grid.Column="0"
+                        StrokeShape="RoundRectangle 26" Stroke="Transparent"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryLight}, Dark={StaticResource Gray800}}"
+                        WidthRequest="52" HeightRequest="52"
+                        VerticalOptions="Center">
+                    <Label x:Name="AvatarLabel" Text="🧠" FontSize="26"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                    <Label x:Name="GreetingLabel" Text="Привет! 👋"
+                           FontSize="22" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                    <Label x:Name="SubGreetingLabel" Text="Готов прокачать мозг?"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Блок серии (streak) -->
+            <Border x:Name="StreakBorder"
+                    StrokeShape="RoundRectangle 14" Stroke="Transparent"
+                    BackgroundColor="{StaticResource Warning}" Padding="16,12">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <Label Grid.Column="0" Text="🔥" FontSize="28" VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                        <Label x:Name="StreakTitleLabel" Text="Серия дней"
+                               FontSize="13" TextColor="{StaticResource WarningLight}" />
+                        <Label x:Name="StreakLabel" Text="0 дней"
+                               FontSize="20" FontAttributes="Bold" TextColor="{StaticResource TextOnPrimaryLight}" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="2" x:Name="StreakBonusLabel" Text=""
+                           FontSize="12" TextColor="{StaticResource WarningLight}" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <!-- Быстрая статистика (3 карточки) -->
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                <Border Grid.Column="0" x:Name="BrainCard"
+                        StrokeShape="RoundRectangle 14" Stroke="Transparent"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                        Padding="12,10">
+                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                        <Label Text="🧠" FontSize="20" HorizontalOptions="Center" />
+                        <Label x:Name="BrainScoreLabel" Text="0"
+                               FontSize="20" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                               HorizontalOptions="Center" />
+                        <Label Text="Индекс" FontSize="10"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                               HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="1" x:Name="GamesCard"
+                        StrokeShape="RoundRectangle 14" Stroke="Transparent"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                        Padding="12,10">
+                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                        <Label Text="🎮" FontSize="20" HorizontalOptions="Center" />
+                        <Label x:Name="GamesPlayedLabel" Text="0"
+                               FontSize="20" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                               HorizontalOptions="Center" />
+                        <Label Text="Сыграно" FontSize="10"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                               HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="2" x:Name="PointsCard"
+                        StrokeShape="RoundRectangle 14" Stroke="Transparent"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                        Padding="12,10">
+                    <VerticalStackLayout Spacing="2" HorizontalOptions="Center">
+                        <Label Text="⭐" FontSize="20" HorizontalOptions="Center" />
+                        <Label x:Name="PointsLabel" Text="0"
+                               FontSize="20" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                               HorizontalOptions="Center" />
+                        <Label Text="Бонусы" FontSize="10"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                               HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Ежедневная тренировка -->
+            <Label Text="Ежедневная тренировка"
+                   FontSize="17" FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+            <Label Text="Подборка игр под твои навыки"
+                   FontSize="12"
+                   TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                   Margin="0,-8,0,0" />
+
+            <VerticalStackLayout x:Name="DailyLayout" Spacing="10" />
+
+            <!-- Кнопки действий -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,4,0,0">
+                <Button Grid.Column="0" Text="⚡ Быстрая игра" Clicked="OnQuickGameClicked"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        HeightRequest="50" CornerRadius="14" FontSize="14" />
+                <Button Grid.Column="1" Text="Все игры →" Clicked="OnAllGamesClicked"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                        TextColor="{StaticResource Primary}"
+                        HeightRequest="50" CornerRadius="14" FontSize="14"
+                        BorderColor="{StaticResource Primary}" BorderWidth="1.5" />
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
