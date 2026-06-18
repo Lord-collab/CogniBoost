@@ -11,7 +11,7 @@ public static class SettingsService
     private const string LanguageKey  = "cb_language"; // "ru" | "en"
 
     /// <summary>Ссылка на скачивание APK.</summary>
-    public const string AppDownloadUrl = "https://github.com/Lord-collab/CogniBoost/releases/download/v1.0.0/CogniBoost-v1.0.0.apk";
+    public const string AppDownloadUrl = "https://github.com/Lord-collab/CogniBoost/releases/download/v1.0.1/CogniBoost-v1.0.1.apk";
     public const string AppVersion     = "1.0.0";
 
     public static string Theme
