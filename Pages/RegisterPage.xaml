@@ -11,21 +11,29 @@
 
             <Label Text="Создать аккаунт" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource TextPrimaryLight}" />
 
-            <Entry x:Name="UsernameEntry" Placeholder="Имя пользователя" />
-            <Entry x:Name="AgeEntry" Placeholder="Возраст" Keyboard="Numeric" />
-            <Entry x:Name="PasswordEntry" Placeholder="Пароль" IsPassword="True" />
-            <Entry x:Name="ConfirmEntry" Placeholder="Повторите пароль" IsPassword="True" />
+            <Entry x:Name="UsernameEntry" Placeholder="Имя пользователя"
+                   TextColor="{StaticResource TextPrimaryLight}" PlaceholderColor="{StaticResource TextMutedLight}"
+                   BackgroundColor="White" />
+            <Entry x:Name="AgeEntry" Placeholder="Возраст" Keyboard="Numeric"
+                   TextColor="{StaticResource TextPrimaryLight}" PlaceholderColor="{StaticResource TextMutedLight}"
+                   BackgroundColor="White" />
+            <Entry x:Name="PasswordEntry" Placeholder="Пароль" IsPassword="True"
+                   TextColor="{StaticResource TextPrimaryLight}" PlaceholderColor="{StaticResource TextMutedLight}"
+                   BackgroundColor="White" />
+            <Entry x:Name="ConfirmEntry" Placeholder="Повторите пароль" IsPassword="True"
+                   TextColor="{StaticResource TextPrimaryLight}" PlaceholderColor="{StaticResource TextMutedLight}"
+                   BackgroundColor="White" />
 
             <Label
                 x:Name="ErrorLabel"
-                TextColor="{StaticResource BrandRed}"
+                TextColor="{StaticResource Error}"
                 FontSize="13"
                 IsVisible="False" />
 
             <Button
                 Text="Зарегистрироваться"
                 Clicked="OnRegisterClicked"
-                BackgroundColor="{StaticResource BrandIndigo}"
+                BackgroundColor="{StaticResource Primary}"
                 TextColor="White"
                 FontAttributes="Bold"
                 HeightRequest="52"
