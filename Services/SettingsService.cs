@@ -10,8 +10,8 @@ public static class SettingsService
     private const string LargeTextKey = "cb_large_text";
     private const string LanguageKey  = "cb_language"; // "ru" | "en"
 
-    /// <summary>Ссылка на скачивание. Замени на реальный URL после публикации.</summary>
-    public const string AppDownloadUrl = "https://github.com/cogniboost/app";
+    /// <summary>Ссылка на скачивание. После создания релиза замени на artifact URL.</summary>
+    public const string AppDownloadUrl = "https://github.com/Lord-collab/CogniBoost/releases";
     public const string AppVersion     = "1.0.0";
 
     public static string Theme
