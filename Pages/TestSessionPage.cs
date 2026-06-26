@@ -54,11 +54,11 @@ public sealed class TestSessionPage : ContentPage
     {
         _timerLabel.FontSize = 18;
         _timerLabel.FontAttributes = FontAttributes.Bold;
-        _timerLabel.TextColor = Color.FromArgb("#7C3AED");
+        _timerLabel.TextColor = ThemeColors.Tertiary;
         _timerLabel.HorizontalOptions = LayoutOptions.End;
 
         _progressLabel.FontSize = 14;
-        _progressLabel.TextColor = Color.FromArgb("#6B7280");
+        _progressLabel.TextColor = ThemeColors.TextSecondary;
         _progressLabel.VerticalOptions = LayoutOptions.Center;
 
         var header = new Grid
@@ -76,13 +76,13 @@ public sealed class TestSessionPage : ContentPage
         _promptLabel.FontSize = 22;
         _promptLabel.FontAttributes = FontAttributes.Bold;
         _promptLabel.HorizontalTextAlignment = TextAlignment.Center;
-        _promptLabel.TextColor = Color.FromArgb("#1A1A2E");
+        _promptLabel.TextColor = ThemeColors.TextPrimary;
 
         var promptCard = new Border
         {
             StrokeShape = new RoundRectangle { CornerRadius = 20 },
             Stroke = Colors.Transparent,
-            BackgroundColor = Colors.White,
+            BackgroundColor = ThemeColors.CardBg,
             Padding = 24,
             Content = _promptLabel
         };
@@ -135,19 +135,24 @@ public sealed class TestSessionPage : ContentPage
         for (var i = 0; i < question.Options.Length; i++)
         {
             var optionIndex = i;
-            var button = new Button
+            var border = new Border
             {
-                Text = question.Options[i],
-                BackgroundColor = Colors.White,
-                TextColor = Color.FromArgb("#1A1A2E"),
-                FontSize = 17,
-                HeightRequest = 52,
-                CornerRadius = 14,
-                BorderColor = Color.FromArgb("#E5E7EB"),
-                BorderWidth = 1
+                StrokeShape = new RoundRectangle { CornerRadius = 14 },
+                Stroke = ThemeColors.Border,
+                StrokeThickness = 1,
+                BackgroundColor = ThemeColors.CardBg,
+                Padding = new Thickness(16, 14),
+                Content = new Label
+                {
+                    Text = question.Options[i],
+                    TextColor = ThemeColors.TextPrimary,
+                    FontSize = 17
+                }
             };
-            button.Clicked += (_, _) => OnAnswer(optionIndex);
-            _optionsLayout.Children.Add(button);
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += (_, _) => OnAnswer(optionIndex);
+            border.GestureRecognizers.Add(tap);
+            _optionsLayout.Children.Add(border);
         }
     }
 
@@ -202,13 +207,18 @@ public sealed class TestSessionPage : ContentPage
 
         // Streak + достижения
         StreakService.RecordActivity();
-        AchievementsService.CheckAndUnlock();
+        var newAchievements = AchievementsService.CheckAndUnlock();
+
+        // Попап новых достижений
+        if (newAchievements.Count > 0)
+            await AchievementPopupService.ShowAsync(this, newAchievements);
 
         // Синхронизация в фоне
         _ = CloudSyncService.SyncTestResultAsync(result);
         _ = CloudSyncService.SyncCurrentUserAsync();
 
-        await Navigation.PushAsync(new TestResultPage(result));
+        var resultPage = new TestResultPage(result, newAchievements);
+        await Navigation.PushAsync(resultPage);
         Navigation.RemovePage(this);
     }
 }

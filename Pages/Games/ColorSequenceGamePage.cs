@@ -1,4 +1,5 @@
 using CogniBoost.Models;
+using CogniBoost.Services;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages.Games;
@@ -46,16 +47,16 @@ public sealed class ColorSequenceGamePage : GameBasePage
     private void BuildUi()
     {
         _statusLabel.FontSize    = 14;
-        _statusLabel.TextColor   = Color.FromArgb("#7B7BA8");
+        _statusLabel.TextColor   = ThemeColors.TextMuted;
 
         _promptLabel.FontSize    = 18;
         _promptLabel.FontAttributes = FontAttributes.Bold;
         _promptLabel.HorizontalOptions = LayoutOptions.Center;
-        _promptLabel.TextColor   = Color.FromArgb("#0D0D2B");
+        _promptLabel.TextColor   = ThemeColors.TextPrimary;
 
         // Дисплей: одна большая цветная плашка
         _displayGrid.HeightRequest = 140;
-        _displayGrid.BackgroundColor = Color.FromArgb("#E4E5F5");
+        _displayGrid.BackgroundColor = ThemeColors.Divider;
 
         // Кнопки ввода
         _inputLayout.Wrap = Microsoft.Maui.Layouts.FlexWrap.Wrap;
@@ -77,7 +78,7 @@ public sealed class ColorSequenceGamePage : GameBasePage
                     {
                         StrokeShape = new RoundRectangle { CornerRadius = 20 },
                         Stroke = Colors.Transparent,
-                        BackgroundColor = Color.FromArgb("#E4E5F5"),
+                        BackgroundColor = ThemeColors.Divider,
                         HeightRequest = 140,
                         Content = _promptLabel
                     },
@@ -135,12 +136,12 @@ public sealed class ColorSequenceGamePage : GameBasePage
             _promptLabel.TextColor = Palette[idx].Color;
             await Task.Delay(700);
             _promptLabel.Text      = "·";
-            _promptLabel.TextColor = Color.FromArgb("#9E9FC8");
+            _promptLabel.TextColor = ThemeColors.TextMuted;
             await Task.Delay(300);
         }
-
-        _promptLabel.Text      = "Повтори!";
-        _promptLabel.TextColor = Color.FromArgb("#0D0D2B");
+ 
+         _promptLabel.Text      = "Повтори!";
+         _promptLabel.TextColor = ThemeColors.TextPrimary;
         _statusLabel.Text      = $"Раунд {_round + 1} из {Rounds} · повторяй";
         _showPhase = false;
         SetInputEnabled(true);
@@ -157,6 +158,8 @@ public sealed class ColorSequenceGamePage : GameBasePage
         if (Array.IndexOf(Palette, Palette.FirstOrDefault(p => p.Color == color)) == expected)
         {
             _inputPos++;
+            HapticService.Click();
+            SoundService.PlayCorrect();
             if (_inputPos >= _sequence.Length)
             {
                 _correct++;
@@ -168,8 +171,9 @@ public sealed class ColorSequenceGamePage : GameBasePage
         }
         else
         {
-            // Ошибка — следующий раунд
-            _promptLabel.TextColor = Color.FromArgb("#FF5370");
+            HapticService.Error();
+            SoundService.PlayWrong();
+            _promptLabel.TextColor = ThemeColors.Error;
             await Task.Delay(700);
             _round++;
             if (_round >= Rounds) { await FinishAsync(_correct, Rounds); return; }

@@ -148,6 +148,8 @@ public partial class GamesPage : ContentPage
         var accent = BrainSkillInfo.Accent(game.Skill);
         var best = ProgressStore.GetBestScore(game.Id);
 
+        var isChallenge = DailyChallengeService.IsChallengeGame(game.Id);
+
         var emoji = new Label
         {
             Text = game.Emoji,
@@ -156,6 +158,19 @@ public partial class GamesPage : ContentPage
             WidthRequest = 48,
             HorizontalTextAlignment = TextAlignment.Center
         };
+
+        var challengeBadge = isChallenge ? new Label
+        {
+            Text = "🔥x2",
+            FontSize = 9,
+            FontAttributes = FontAttributes.Bold,
+            TextColor = Colors.White,
+            BackgroundColor = ThemeColors.Success,
+            Padding = new Thickness(4, 1),
+            HorizontalTextAlignment = TextAlignment.Center,
+            VerticalOptions = LayoutOptions.Start,
+            HorizontalOptions = LayoutOptions.Start
+        } : null;
 
         var titleLabel = new Label
         {
@@ -190,27 +205,73 @@ public partial class GamesPage : ContentPage
             Children = { titleLabel, descLabel, metaLabel }
         };
 
-        var arrow = new Label
+        var emojiContainer = new Grid { WidthRequest = 48 };
+        emojiContainer.Children.Add(emoji);
+        if (challengeBadge is not null)
         {
-            Text = "▶",
-            FontSize = 14,
+            challengeBadge.Margin = new Thickness(2);
+            emojiContainer.Children.Add(challengeBadge);
+        }
+
+        var playBtn = new Button
+        {
+            Text = unlocked ? "Играть" : $"🔥 {game.UnlockCost}",
+            BackgroundColor = accent,
+            TextColor = Colors.White,
+            FontAttributes = FontAttributes.Bold,
+            FontSize = 13,
+            HeightRequest = 36,
+            CornerRadius = 10,
+            Padding = new Thickness(16, 0)
+        };
+        playBtn.Clicked += async (_, _) => await OnGameTapped(game);
+
+        var tutorialBtn = new Button
+        {
+            Text = "Как играть",
+            BackgroundColor = Colors.Transparent,
             TextColor = accent,
-            VerticalOptions = LayoutOptions.Center
+            FontAttributes = FontAttributes.Bold,
+            FontSize = 13,
+            HeightRequest = 36,
+            CornerRadius = 10,
+            BorderColor = accent,
+            BorderWidth = 1,
+            Padding = new Thickness(16, 0)
+        };
+        tutorialBtn.Clicked += async (_, _) =>
+        {
+            if (!unlocked)
+            {
+                var go = await DisplayAlertAsync(
+                    "Игра закрыта",
+                    $"«{game.Title}» открывается за {game.UnlockCost} бонусов. Перейти в магазин?",
+                    "В магазин", "Отмена");
+                if (go)
+                    await Shell.Current.GoToAsync("store");
+                return;
+            }
+            await GameTutorialService.ShowManualAsync(this, game.Id);
         };
 
-        var grid = new Grid
+        var buttonsRow = new HorizontalStackLayout
+        {
+            Spacing = 10,
+            HorizontalOptions = LayoutOptions.End,
+            Children = { playBtn, tutorialBtn }
+        };
+
+        var topRow = new Grid
         {
             ColumnDefinitions =
             {
                 new ColumnDefinition { Width = GridLength.Auto },
-                new ColumnDefinition { Width = GridLength.Star },
-                new ColumnDefinition { Width = GridLength.Auto }
+                new ColumnDefinition { Width = GridLength.Star }
             },
             ColumnSpacing = 12,
-            Children = { emoji, info, arrow }
+            Children = { emojiContainer, info }
         };
         Grid.SetColumn(info, 1);
-        Grid.SetColumn(arrow, 2);
 
         var card = new Border
         {
@@ -219,7 +280,11 @@ public partial class GamesPage : ContentPage
             BackgroundColor = ThemeColors.CardBg,
             Padding = new Thickness(14),
             Opacity = unlocked ? 1.0 : 0.6,
-            Content = grid,
+            Content = new VerticalStackLayout
+            {
+                Spacing = 10,
+                Children = { topRow, buttonsRow }
+            },
             Shadow = new Shadow
             {
                 Brush = new SolidColorBrush(Colors.Black),
@@ -228,10 +293,6 @@ public partial class GamesPage : ContentPage
                 Opacity = 0.05f
             }
         };
-
-        var tap = new TapGestureRecognizer();
-        tap.Tapped += async (_, _) => await OnGameTapped(game);
-        card.GestureRecognizers.Add(tap);
 
         return card;
     }

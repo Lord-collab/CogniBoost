@@ -9,7 +9,7 @@ public partial class RegisterPage : ContentPage
         InitializeComponent();
     }
 
-    private void OnRegisterClicked(object? sender, EventArgs e)
+    private async void OnRegisterClicked(object? sender, EventArgs e)
     {
         if (!AccountStore.TryValidateRegistration(
                 UsernameEntry.Text ?? string.Empty,
@@ -23,7 +23,19 @@ public partial class RegisterPage : ContentPage
             return;
         }
 
-        AccountStore.SaveAccount(UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!);
+        if (AccountStore.IsGuest)
+        {
+            AccountStore.MigrateGuestData(
+                UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!);
+        }
+        else
+        {
+            AccountStore.SaveAccount(UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!);
+        }
+
+        // Синхронизируем профиль с облаком (fire-and-forget)
+        if (SupabaseConfig.IsConfigured)
+            _ = CloudSyncService.SyncCurrentUserAsync();
 
         // После регистрации сразу ведём на онбординг (выбор направлений).
         App.ResetRootPage();

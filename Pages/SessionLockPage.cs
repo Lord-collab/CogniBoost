@@ -3,10 +3,6 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages;
 
-/// <summary>
-/// Экран блокировки сессии — показывается если приложение было в фоне > 30 минут.
-/// Пользователь вводит пароль для продолжения или выходит из аккаунта.
-/// </summary>
 public sealed class SessionLockPage : ContentPage
 {
     private readonly Entry _passwordEntry = new() { Placeholder = "Введи пароль", IsPassword = true };
@@ -17,7 +13,7 @@ public sealed class SessionLockPage : ContentPage
     {
         NavigationPage.SetHasNavigationBar(this, false);
         Shell.SetNavBarIsVisible(this, false);
-        BackgroundColor = Color.FromArgb("#0D0D2B");
+        BackgroundColor = ThemeColors.PageBg;
 
         AccountStore.TryGetCurrentProfile(out var profile);
         var name = profile?.Username ?? "Добро пожаловать";
@@ -25,20 +21,22 @@ public sealed class SessionLockPage : ContentPage
         _greetingLabel.Text      = $"👋 {name}";
         _greetingLabel.FontSize  = 28;
         _greetingLabel.FontAttributes = FontAttributes.Bold;
-        _greetingLabel.TextColor = Colors.White;
+        _greetingLabel.TextColor = ThemeColors.TextPrimary;
         _greetingLabel.HorizontalOptions = LayoutOptions.Center;
 
-        _errorLabel.TextColor  = Color.FromArgb("#FF5370");
+        _errorLabel.TextColor  = ThemeColors.Error;
         _errorLabel.FontSize   = 13;
         _errorLabel.IsVisible  = false;
         _errorLabel.HorizontalOptions = LayoutOptions.Center;
 
-        _passwordEntry.BackgroundColor = Colors.White;
+        _passwordEntry.BackgroundColor = ThemeColors.CardBg;
+        _passwordEntry.TextColor = ThemeColors.TextPrimary;
+        _passwordEntry.PlaceholderColor = ThemeColors.TextMuted;
 
         var unlockBtn = new Button
         {
             Text = "Продолжить",
-            BackgroundColor = Color.FromArgb("#6C63FF"), TextColor = Colors.White,
+            BackgroundColor = ThemeColors.Accent, TextColor = Colors.White,
             FontAttributes = FontAttributes.Bold, HeightRequest = 52, CornerRadius = 14
         };
         unlockBtn.Clicked += OnUnlock;
@@ -46,8 +44,8 @@ public sealed class SessionLockPage : ContentPage
         var signOutBtn = new Button
         {
             Text = "Сменить пользователя",
-            BackgroundColor = Colors.Transparent, TextColor = Colors.White,
-            BorderColor = Colors.White, BorderWidth = 1,
+            BackgroundColor = Colors.Transparent, TextColor = ThemeColors.TextPrimary,
+            BorderColor = ThemeColors.TextPrimary, BorderWidth = 1,
             HeightRequest = 50, CornerRadius = 14
         };
         signOutBtn.Clicked += (_, _) =>
@@ -59,7 +57,7 @@ public sealed class SessionLockPage : ContentPage
         var card = new Border
         {
             StrokeShape = new RoundRectangle { CornerRadius = 24 },
-            Stroke = Colors.Transparent, BackgroundColor = Color.FromArgb("#13142A"),
+            Stroke = Colors.Transparent, BackgroundColor = ThemeColors.CardBg,
             Padding = new Thickness(24),
             Content = new VerticalStackLayout
             {
@@ -68,14 +66,14 @@ public sealed class SessionLockPage : ContentPage
                 {
                     new Label { Text = "🔒", FontSize = 52, HorizontalOptions = LayoutOptions.Center },
                     new Label { Text = "Сессия заблокирована", FontSize = 20,
-                        FontAttributes = FontAttributes.Bold, TextColor = Colors.White,
+                        FontAttributes = FontAttributes.Bold, TextColor = ThemeColors.TextPrimary,
                         HorizontalOptions = LayoutOptions.Center },
                     new Label { Text = "Введи пароль чтобы продолжить", FontSize = 14,
-                        TextColor = Color.FromArgb("#6B6C99"), HorizontalOptions = LayoutOptions.Center },
+                        TextColor = ThemeColors.TextMuted, HorizontalOptions = LayoutOptions.Center },
                     new Border
                     {
                         StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                        Stroke = Color.FromArgb("#252650"), StrokeThickness = 1,
+                        Stroke = ThemeColors.Divider, StrokeThickness = 1,
                         Padding = new Thickness(12, 4), Content = _passwordEntry
                     },
                     _errorLabel,
@@ -85,7 +83,7 @@ public sealed class SessionLockPage : ContentPage
             }
         };
 
-        Content = new Grid
+        var grid = new Grid
         {
             Padding = 24,
             RowDefinitions =
@@ -93,17 +91,14 @@ public sealed class SessionLockPage : ContentPage
                 new RowDefinition { Height = GridLength.Star },
                 new RowDefinition { Height = GridLength.Auto },
                 new RowDefinition { Height = GridLength.Star },
-            },
-            Children =
-            {
-                _greetingLabel,
-                card,
             }
         };
+        grid.Children.Add(_greetingLabel);
+        grid.Children.Add(card);
         Grid.SetRow(_greetingLabel, 0);
         Grid.SetRow(card, 1);
+        Content = grid;
 
-        // Фокус на поле пароля
         Loaded += (_, _) => _passwordEntry.Focus();
     }
 

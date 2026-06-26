@@ -147,7 +147,7 @@ public sealed class StreakBadge : Border
     {
         StrokeShape = new RoundRectangle { CornerRadius = 14 };
         Stroke = Colors.Transparent;
-        BackgroundColor = Color.FromArgb("#F59E0B");
+        BackgroundColor = ThemeColors.Warning;
         Padding = new Thickness(16, 12);
 
         var fire = new Label
@@ -172,7 +172,7 @@ public sealed class StreakBadge : Border
         {
             bonusLabel.Text = $"+{bonus} ⭐/день";
             bonusLabel.FontSize = 12;
-            bonusLabel.TextColor = Color.FromArgb("#FEF3C7");
+            bonusLabel.TextColor = ThemeColors.WarningLight;
             bonusLabel.VerticalOptions = LayoutOptions.Center;
         }
 

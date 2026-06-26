@@ -4,9 +4,6 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages;
 
-/// <summary>
-/// Магазин игр: показывает баланс бонусов и игры, которые можно открыть за очки.
-/// </summary>
 public sealed class StorePage : ContentPage
 {
     private readonly Label _balanceLabel = new();
@@ -35,14 +32,18 @@ public sealed class StorePage : ContentPage
         {
             StrokeShape = new RoundRectangle { CornerRadius = 20 },
             Stroke = Colors.Transparent,
-            BackgroundColor = Color.FromArgb("#F59E0B"),
+            BackgroundColor = ThemeColors.Warning,
             Padding = 20,
             Content = new VerticalStackLayout
             {
                 Spacing = 4,
                 Children =
                 {
-                    new Label { Text = "Баланс бонусов", FontSize = 14, TextColor = Color.FromArgb("#FEF3C7") },
+                    new Label
+                    {
+                        Text = "Баланс бонусов", FontSize = 14,
+                        TextColor = ThemeColors.WarningLight
+                    },
                     _balanceLabel
                 }
             }
@@ -56,9 +57,17 @@ public sealed class StorePage : ContentPage
                 Spacing = 18,
                 Children =
                 {
-                    new Label { Text = "Магазин игр", FontSize = 28, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#1A1A2E") },
+                    new Label
+                    {
+                        Text = "Магазин игр", FontSize = 28, FontAttributes = FontAttributes.Bold,
+                        TextColor = ThemeColors.TextPrimary
+                    },
                     balanceCard,
-                    new Label { Text = "Открывай новые игры за бонусы, заработанные в играх и тестах.", FontSize = 13, TextColor = Color.FromArgb("#6B7280") },
+                    new Label
+                    {
+                        Text = "Открывай новые игры за бонусы, заработанные в играх и тестах.",
+                        FontSize = 13, TextColor = ThemeColors.TextMuted
+                    },
                     _list
                 }
             }
@@ -78,7 +87,7 @@ public sealed class StorePage : ContentPage
             {
                 Text = "Все игры открыты! 🎉",
                 FontSize = 16,
-                TextColor = Color.FromArgb("#10B981"),
+                TextColor = ThemeColors.Success,
                 HorizontalOptions = LayoutOptions.Center,
                 Margin = new Thickness(0, 20)
             });
@@ -96,24 +105,36 @@ public sealed class StorePage : ContentPage
         var unlocked = UnlockService.IsUnlocked(game);
         var accent = BrainSkillInfo.Accent(game.Skill);
 
+        var emoji = new Label
+        {
+            Text = game.Emoji, FontSize = 32,
+            VerticalOptions = LayoutOptions.Center
+        };
+
         var info = new VerticalStackLayout
         {
             Spacing = 3,
             VerticalOptions = LayoutOptions.Center,
             Children =
             {
-                new Label { Text = game.Title, FontSize = 17, FontAttributes = FontAttributes.Bold, TextColor = Color.FromArgb("#1A1A2E") },
-                new Label { Text = $"{BrainSkillInfo.Title(game.Skill)} · {game.Description}", FontSize = 12, TextColor = Color.FromArgb("#6B7280") }
+                new Label
+                {
+                    Text = game.Title, FontSize = 17,
+                    FontAttributes = FontAttributes.Bold,
+                    TextColor = ThemeColors.TextPrimary
+                },
+                new Label
+                {
+                    Text = $"{BrainSkillInfo.Title(game.Skill)} · {game.Description}",
+                    FontSize = 12, TextColor = ThemeColors.TextSecondary
+                }
             }
         };
-        Grid.SetColumn(info, 1);
-
-        var emoji = new Label { Text = game.Emoji, FontSize = 32, VerticalOptions = LayoutOptions.Center };
 
         var actionButton = new Button
         {
             Text = unlocked ? "Открыто" : $"{game.UnlockCost} ⭐",
-            BackgroundColor = unlocked ? Color.FromArgb("#10B981") : accent,
+            BackgroundColor = unlocked ? ThemeColors.Success : accent,
             TextColor = Colors.White,
             FontAttributes = FontAttributes.Bold,
             CornerRadius = 12,
@@ -121,11 +142,8 @@ public sealed class StorePage : ContentPage
             WidthRequest = 110,
             IsEnabled = !unlocked
         };
-        Grid.SetColumn(actionButton, 2);
         if (!unlocked)
-        {
             actionButton.Clicked += async (_, _) => await OnBuy(game);
-        }
 
         var grid = new Grid
         {
@@ -136,14 +154,17 @@ public sealed class StorePage : ContentPage
                 new ColumnDefinition { Width = GridLength.Star },
                 new ColumnDefinition { Width = GridLength.Auto }
             },
-            Children = { emoji, info, actionButton }
+            Children = { emoji, info }
         };
+        Grid.SetColumn(info, 1);
+        Grid.SetColumn(actionButton, 2);
+        grid.Children.Add(actionButton);
 
         return new Border
         {
-            StrokeShape = new RoundRectangle { CornerRadius = 16 },
+            StrokeShape = new RoundRectangle { CornerRadius = 14 },
             Stroke = Colors.Transparent,
-            BackgroundColor = Colors.White,
+            BackgroundColor = ThemeColors.CardBg,
             Padding = 14,
             Content = grid
         };
@@ -155,10 +176,7 @@ public sealed class StorePage : ContentPage
             "Открыть игру",
             $"Открыть «{game.Title}» за {game.UnlockCost} бонусов?",
             "Открыть", "Отмена");
-        if (!confirm)
-        {
-            return;
-        }
+        if (!confirm) return;
 
         if (UnlockService.TryUnlock(game, out var message))
         {

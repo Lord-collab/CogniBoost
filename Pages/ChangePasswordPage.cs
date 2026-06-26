@@ -10,22 +10,18 @@ public sealed class ChangePasswordPage : ContentPage
     private readonly Entry _confEntry = new() { Placeholder = "Повторите пароль", IsPassword = true };
     private readonly Label _errorLabel = new();
 
-    private static bool IsDark => Application.Current?.RequestedTheme == AppTheme.Dark;
-    private static Color Card  => Color.FromArgb(IsDark ? "#13142A" : "#FFFFFF");
-    private static Color Txt   => Color.FromArgb(IsDark ? "#E8E8FF" : "#0D0D2B");
-
     public ChangePasswordPage()
     {
         Title           = "Смена пароля";
-        BackgroundColor = Color.FromArgb(IsDark ? "#0A0B18" : "#F0F1FA");
+        BackgroundColor = ThemeColors.PageBg;
 
-        _errorLabel.TextColor  = Color.FromArgb("#FF5370");
+        _errorLabel.TextColor  = ThemeColors.Error;
         _errorLabel.FontSize   = 13;
         _errorLabel.IsVisible  = false;
 
         var saveBtn = new Button
         {
-            Text = "Изменить пароль", BackgroundColor = Color.FromArgb("#6C63FF"),
+            Text = "Изменить пароль", BackgroundColor = ThemeColors.Accent,
             TextColor = Colors.White, FontAttributes = FontAttributes.Bold,
             HeightRequest = 52, CornerRadius = 14
         };
@@ -39,9 +35,9 @@ public sealed class ChangePasswordPage : ContentPage
                 Children =
                 {
                     new Label { Text = "Смена пароля", FontSize = 26,
-                        FontAttributes = FontAttributes.Bold, TextColor = Txt },
+                        FontAttributes = FontAttributes.Bold, TextColor = ThemeColors.TextPrimary },
                     new Label { Text = "Пароль должен быть не короче 6 символов и содержать цифру.",
-                        FontSize = 13, TextColor = Color.FromArgb("#7B7BA8") },
+                        FontSize = 13, TextColor = ThemeColors.TextMuted },
                     BuildCard(new VerticalStackLayout
                     {
                         Spacing = 12,
@@ -80,15 +76,20 @@ public sealed class ChangePasswordPage : ContentPage
         => new()
         {
             StrokeShape = new RoundRectangle { CornerRadius = 18 },
-            Stroke = Colors.Transparent, BackgroundColor = Card,
+            Stroke = Colors.Transparent, BackgroundColor = ThemeColors.CardBg,
             Padding = new Thickness(16), Content = content
         };
 
     private static Border WrapEntry(Entry entry)
-        => new()
+    {
+        entry.BackgroundColor = ThemeColors.CardBg;
+        entry.TextColor = ThemeColors.TextPrimary;
+        entry.PlaceholderColor = ThemeColors.TextMuted;
+        return new Border
         {
             StrokeShape = new RoundRectangle { CornerRadius = 12 },
-            Stroke = Color.FromArgb("#E4E5F5"), StrokeThickness = 1,
+            Stroke = ThemeColors.Divider, StrokeThickness = 1,
             Padding = new Thickness(12, 4), Content = entry
         };
+    }
 }

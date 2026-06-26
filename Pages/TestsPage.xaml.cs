@@ -58,10 +58,24 @@ public partial class TestsPage : ContentPage
             var questionCount = questions.Count(q => q.Prompt != "Далее" && !q.Prompt.StartsWith("Запомни слова"));
             if (questionCount == 0) questionCount = questions.Count;
 
-            var minutes = test.DurationSeconds / 60;
-
-            var emoji = test.Id == "iq_express" ? "🧠" : "📝";
-            var iconColor = test.Id == "iq_express" ? ThemeColors.Accent : ThemeColors.Success;
+            var emoji = test.Id switch
+            {
+                "iq_express" => "🧠",
+                "memory_words" => "📖",
+                "focus_test" => "🎯",
+                "logic_test" => "⚖️",
+                "numerical_test" => "🔢",
+                _ => "📝"
+            };
+            var iconColor = test.Id switch
+            {
+                "iq_express" => ThemeColors.Accent,
+                "memory_words" => Color.FromArgb("#FF6B9D"),
+                "focus_test" => Color.FromArgb("#FFA726"),
+                "logic_test" => Color.FromArgb("#AB47BC"),
+                "numerical_test" => Color.FromArgb("#42A5F5"),
+                _ => ThemeColors.Success
+            };
 
             var emojiLabel = new Label
             {
@@ -82,7 +96,7 @@ public partial class TestsPage : ContentPage
 
             var metaLabel = new Label
             {
-                Text = $"{questionCount} вопросов · {minutes} мин",
+                Text = $"{questionCount} вопросов",
                 FontSize = 12,
                 TextColor = ThemeColors.TextMuted
             };

@@ -1,132 +1,228 @@
-using System.Text.Json;
 using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
-/// <summary>
-/// Хранилище прогресса: история сыгранных игр и результатов тестов,
-/// агрегированные баллы по навыкам. Данные сохраняются локально per-user.
-/// </summary>
 public static class ProgressStore
 {
-    private const string GameHistoryPrefix = "cb_game_history_";
-    private const string TestHistoryPrefix = "cb_test_history_";
-
     private const int MaxHistoryItems = 200;
-
-    // ---------- Игры ----------
 
     public static void AddGameResult(GameResult result)
     {
-        var history = GetGameHistory();
-        history.Insert(0, result);
-        if (history.Count > MaxHistoryItems)
+        DatabaseService.Sync(async () =>
         {
-            history = history.Take(MaxHistoryItems).ToList();
-        }
+            var userKey = UserKey();
+            var count = await DatabaseService.Db
+                .Table<GameResultEntity>()
+                .Where(g => g.UsernameKey == userKey)
+                .CountAsync();
 
-        Preferences.Default.Set(GameHistoryKey(), JsonSerializer.Serialize(history));
+            if (count >= MaxHistoryItems)
+            {
+                var oldest = await DatabaseService.Db
+                    .Table<GameResultEntity>()
+                    .Where(g => g.UsernameKey == userKey)
+                    .OrderBy(g => g.PlayedAtUtc)
+                    .FirstAsync();
+
+                await DatabaseService.Db.DeleteAsync(oldest);
+            }
+
+            await DatabaseService.Db.InsertAsync(new GameResultEntity
+            {
+                UsernameKey = UserKey(),
+                GameId = result.GameId,
+                GameTitle = result.GameTitle,
+                Skill = (int)result.Skill,
+                Score = result.Score,
+                MaxScore = result.MaxScore,
+                EarnedPoints = result.EarnedPoints,
+                PlayedAtUtc = result.PlayedAtUtc
+            });
+        });
     }
 
     public static List<GameResult> GetGameHistory()
     {
-        var raw = Preferences.Default.Get(GameHistoryKey(), string.Empty);
-        if (string.IsNullOrWhiteSpace(raw))
+        return DatabaseService.Sync(async () =>
         {
-            return new List<GameResult>();
-        }
+            var userKey = UserKey();
+            var entities = await DatabaseService.Db
+                .Table<GameResultEntity>()
+                .Where(g => g.UsernameKey == userKey)
+                .OrderByDescending(g => g.PlayedAtUtc)
+                .ToListAsync();
 
-        try
-        {
-            return JsonSerializer.Deserialize<List<GameResult>>(raw) ?? new List<GameResult>();
-        }
-        catch
-        {
-            return new List<GameResult>();
-        }
+            return entities.Select(e => new GameResult(
+                e.GameId, e.GameTitle, (BrainSkill)e.Skill,
+                e.Score, e.MaxScore, e.EarnedPoints, e.PlayedAtUtc
+            )).ToList();
+        });
     }
 
-    /// <summary>Лучший результат (по очкам) для конкретной игры.</summary>
     public static int GetBestScore(string gameId)
-        => GetGameHistory()
-            .Where(r => string.Equals(r.GameId, gameId, StringComparison.OrdinalIgnoreCase))
-            .Select(r => r.Score)
-            .DefaultIfEmpty(0)
-            .Max();
+    {
+        return DatabaseService.Sync(async () =>
+        {
+            var userKey = UserKey();
+            var best = await DatabaseService.Db
+                .Table<GameResultEntity>()
+                .Where(g => g.UsernameKey == userKey
+                    && g.GameId == gameId)
+                .OrderByDescending(g => g.Score)
+                .FirstOrDefaultAsync();
+
+            return best?.Score ?? 0;
+        });
+    }
 
     public static int GetGamesPlayedCount()
-        => GetGameHistory()
-            .Select(r => r.GameId)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Count();
-
-    /// <summary>
-    /// Балл по навыку (0..1000): средняя точность лучших попыток по играм этого навыка.
-    /// </summary>
-    public static int GetSkillScore(BrainSkill skill)
     {
-        var history = GetGameHistory().Where(r => r.Skill == skill).ToList();
-        if (history.Count == 0)
+        return DatabaseService.Sync(async () =>
         {
-            return 0;
-        }
+            var userKey = UserKey();
+            var entities = await DatabaseService.Db
+                .Table<GameResultEntity>()
+                .Where(g => g.UsernameKey == userKey)
+                .ToListAsync();
 
-        var bestByGame = history
-            .GroupBy(r => r.GameId, StringComparer.OrdinalIgnoreCase)
-            .Select(g => g.Max(r => r.Accuracy));
-
-        var avg = bestByGame.Average();
-        return (int)Math.Round(avg * 1000);
+            return entities
+                .Select(g => g.GameId)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count();
+        });
     }
 
-    /// <summary>Общий балл «мозга»: среднее по всем навыкам.</summary>
+    public static int GetSkillScore(BrainSkill skill)
+    {
+        return DatabaseService.Sync(async () =>
+        {
+            var userKey = UserKey();
+            var history = await DatabaseService.Db
+                .Table<GameResultEntity>()
+                .Where(g => g.UsernameKey == userKey
+                    && g.Skill == (int)skill)
+                .ToListAsync();
+
+            if (history.Count == 0) return 0;
+
+            var bestByGame = history
+                .GroupBy(r => r.GameId, StringComparer.OrdinalIgnoreCase)
+                .Select(g =>
+                {
+                    var max = g.OrderByDescending(r => r.Score / (double)Math.Max(r.MaxScore, 1)).First();
+                    return max.MaxScore > 0
+                        ? Math.Clamp(max.Score / (double)max.MaxScore, 0, 1)
+                        : 0;
+                });
+
+            var avg = bestByGame.Average();
+            return (int)Math.Round(avg * 1000);
+        });
+    }
+
     public static int GetOverallScore()
     {
-        var scores = BrainSkillInfo.All
-            .Select(meta => GetSkillScore(meta.Skill))
-            .Where(s => s > 0)
-            .ToList();
+        return DatabaseService.Sync(async () =>
+        {
+            var userKey = UserKey();
+            var scores = new List<int>();
+            foreach (var meta in BrainSkillInfo.All)
+            {
+                var history = await DatabaseService.Db
+                    .Table<GameResultEntity>()
+                    .Where(g => g.UsernameKey == userKey
+                        && g.Skill == (int)meta.Skill)
+                    .ToListAsync();
 
-        return scores.Count == 0 ? 0 : (int)Math.Round(scores.Average());
+                if (history.Count == 0) continue;
+
+                var bestByGame = history
+                    .GroupBy(r => r.GameId, StringComparer.OrdinalIgnoreCase)
+                    .Select(g =>
+                    {
+                        var max = g.OrderByDescending(r => r.Score / (double)Math.Max(r.MaxScore, 1)).First();
+                        return max.MaxScore > 0
+                            ? Math.Clamp(max.Score / (double)max.MaxScore, 0, 1)
+                            : 0;
+                    });
+
+                var avg = bestByGame.Average();
+                scores.Add((int)Math.Round(avg * 1000));
+            }
+
+            return scores.Count == 0 ? 0 : (int)Math.Round(scores.Average());
+        });
     }
 
     // ---------- Тесты ----------
 
     public static void AddTestResult(TestResult result)
     {
-        var history = GetTestHistory();
-        history.Insert(0, result);
-        if (history.Count > MaxHistoryItems)
+        DatabaseService.Sync(async () =>
         {
-            history = history.Take(MaxHistoryItems).ToList();
-        }
+            var userKey = UserKey();
+            var count = await DatabaseService.Db
+                .Table<TestResultEntity>()
+                .Where(t => t.UsernameKey == userKey)
+                .CountAsync();
 
-        Preferences.Default.Set(TestHistoryKey(), JsonSerializer.Serialize(history));
+            if (count >= MaxHistoryItems)
+            {
+                var oldest = await DatabaseService.Db
+                    .Table<TestResultEntity>()
+                    .Where(t => t.UsernameKey == userKey)
+                    .OrderBy(t => t.PlayedAtUtc)
+                    .FirstAsync();
+
+                await DatabaseService.Db.DeleteAsync(oldest);
+            }
+
+            await DatabaseService.Db.InsertAsync(new TestResultEntity
+            {
+                UsernameKey = UserKey(),
+                TestId = result.TestId,
+                TestTitle = result.TestTitle,
+                CorrectAnswers = result.CorrectAnswers,
+                TotalQuestions = result.TotalQuestions,
+                IqScore = result.IqScore,
+                EarnedPoints = result.EarnedPoints,
+                PlayedAtUtc = result.PlayedAtUtc
+            });
+        });
     }
 
     public static List<TestResult> GetTestHistory()
     {
-        var raw = Preferences.Default.Get(TestHistoryKey(), string.Empty);
-        if (string.IsNullOrWhiteSpace(raw))
+        return DatabaseService.Sync(async () =>
         {
-            return new List<TestResult>();
-        }
+            var userKey = UserKey();
+            var entities = await DatabaseService.Db
+                .Table<TestResultEntity>()
+                .Where(t => t.UsernameKey == userKey)
+                .OrderByDescending(t => t.PlayedAtUtc)
+                .ToListAsync();
 
-        try
-        {
-            return JsonSerializer.Deserialize<List<TestResult>>(raw) ?? new List<TestResult>();
-        }
-        catch
-        {
-            return new List<TestResult>();
-        }
+            return entities.Select(e => new TestResult(
+                e.TestId, e.TestTitle, e.CorrectAnswers,
+                e.TotalQuestions, e.IqScore, e.EarnedPoints, e.PlayedAtUtc
+            )).ToList();
+        });
     }
 
     public static int GetBestIq()
-        => GetTestHistory().Select(r => r.IqScore).DefaultIfEmpty(0).Max();
+    {
+        return DatabaseService.Sync(async () =>
+        {
+            var userKey = UserKey();
+            var best = await DatabaseService.Db
+                .Table<TestResultEntity>()
+                .Where(t => t.UsernameKey == userKey)
+                .OrderByDescending(t => t.IqScore)
+                .FirstOrDefaultAsync();
 
-    private static string GameHistoryKey() => $"{GameHistoryPrefix}{UserKey()}";
-    private static string TestHistoryKey() => $"{TestHistoryPrefix}{UserKey()}";
+            return best?.IqScore ?? 0;
+        });
+    }
 
     private static string UserKey()
     {

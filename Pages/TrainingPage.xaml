@@ -46,6 +46,24 @@
                 </Grid>
             </Border>
 
+            <!-- Ежедневный челлендж -->
+            <Border x:Name="ChallengeBorder" IsVisible="False"
+                    StrokeShape="RoundRectangle 14" Stroke="Transparent"
+                    BackgroundColor="{StaticResource Success}" Padding="16,12">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Label Grid.Column="0" Text="🏆" FontSize="28" VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                        <Label Text="Ежедневный челлендж" FontSize="13"
+                               TextColor="{StaticResource SuccessLight}" />
+                        <Label x:Name="ChallengeTitleLabel" Text=""
+                               FontSize="18" FontAttributes="Bold"
+                               TextColor="{StaticResource TextOnPrimaryLight}" />
+                        <Label Text="Бонусы ×2 за эту игру!" FontSize="11"
+                               TextColor="{StaticResource SuccessLight}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
             <!-- Быстрая статистика (3 карточки) -->
             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
                 <Border Grid.Column="0" x:Name="BrainCard"
@@ -94,6 +112,26 @@
                     </VerticalStackLayout>
                 </Border>
             </Grid>
+
+            <!-- Баннер гостевого режима -->
+            <Border x:Name="GuestBanner" IsVisible="False"
+                    StrokeShape="RoundRectangle 14" Stroke="Transparent"
+                    BackgroundColor="#3A3A5C" Padding="16,12">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <Label Grid.Column="0" Text="👤" FontSize="24" VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="1" VerticalOptions="Center">
+                        <Label Text="Гостевой режим" FontSize="14" FontAttributes="Bold"
+                               TextColor="White" />
+                        <Label Text="Прогресс не сохранится после удаления приложения"
+                               FontSize="12" TextColor="#C0C0D0" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="2" Text="Создать аккаунт" Clicked="OnGuestLoginClicked"
+                            BackgroundColor="#6C63FF" TextColor="White"
+                            FontSize="12" FontAttributes="Bold"
+                            HeightRequest="36" CornerRadius="10"
+                            Padding="14,0" VerticalOptions="Center" />
+                </Grid>
+            </Border>
 
             <!-- Ежедневная тренировка -->
             <Label Text="Ежедневная тренировка"

@@ -1,4 +1,5 @@
 using CogniBoost.Models;
+using CogniBoost.Services;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages.Games;
@@ -42,7 +43,7 @@ public sealed class StroopGamePage : GameBasePage
     private void BuildUi()
     {
         _progressLabel.FontSize = 14;
-        _progressLabel.TextColor = Color.FromArgb("#6B7280");
+        _progressLabel.TextColor = ThemeColors.TextSecondary;
 
         _wordLabel.FontSize = 48;
         _wordLabel.FontAttributes = FontAttributes.Bold;
@@ -52,7 +53,7 @@ public sealed class StroopGamePage : GameBasePage
         {
             StrokeShape = new RoundRectangle { CornerRadius = 20 },
             Stroke = Colors.Transparent,
-            BackgroundColor = Colors.White,
+            BackgroundColor = ThemeColors.CardBg,
             Padding = 32,
             Content = _wordLabel
         };
@@ -99,12 +100,12 @@ public sealed class StroopGamePage : GameBasePage
             var button = new Button
             {
                 Text = Palette[i].Name,
-                BackgroundColor = Colors.White,
-                TextColor = Color.FromArgb("#1A1A2E"),
+                BackgroundColor = ThemeColors.CardBg,
+                TextColor = ThemeColors.TextPrimary,
                 FontSize = 17,
                 HeightRequest = 50,
                 CornerRadius = 14,
-                BorderColor = Color.FromArgb("#E5E7EB"),
+                BorderColor = ThemeColors.Border,
                 BorderWidth = 1
             };
             button.Clicked += (_, _) => OnAnswer(colorIndex, button);
@@ -124,13 +125,19 @@ public sealed class StroopGamePage : GameBasePage
         if (chosenColorIndex == _inkColorIndex)
         {
             _correct++;
-            button.BackgroundColor = Color.FromArgb("#10B981");
+            button.BackgroundColor = ThemeColors.Success;
             button.TextColor = Colors.White;
+            HapticService.Click();
+            SoundService.PlayCorrect();
+            _ = button.PopAsync();
         }
         else
         {
-            button.BackgroundColor = Color.FromArgb("#EF4444");
+            button.BackgroundColor = ThemeColors.Error;
             button.TextColor = Colors.White;
+            HapticService.Error();
+            SoundService.PlayWrong();
+            _ = button.ShakeAsync();
         }
 
         await Task.Delay(600);

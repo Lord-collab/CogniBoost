@@ -1,4 +1,5 @@
 using CogniBoost.Models;
+using CogniBoost.Services;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages.Games;
@@ -35,18 +36,18 @@ public sealed class NumberRecallGamePage : GameBasePage
     private void BuildUi()
     {
         _progressLabel.FontSize = 14;
-        _progressLabel.TextColor = Color.FromArgb("#6B7280");
-
-        _sequenceLabel.FontSize = 44;
-        _sequenceLabel.FontAttributes = FontAttributes.Bold;
-        _sequenceLabel.HorizontalOptions = LayoutOptions.Center;
-        _sequenceLabel.TextColor = Color.FromArgb("#1A1A2E");
+        _progressLabel.TextColor = ThemeColors.TextSecondary;
+ 
+         _sequenceLabel.FontSize = 44;
+         _sequenceLabel.FontAttributes = FontAttributes.Bold;
+         _sequenceLabel.HorizontalOptions = LayoutOptions.Center;
+         _sequenceLabel.TextColor = ThemeColors.TextPrimary;
 
         var card = new Border
         {
             StrokeShape = new RoundRectangle { CornerRadius = 20 },
             Stroke = Colors.Transparent,
-            BackgroundColor = Colors.White,
+            BackgroundColor = ThemeColors.CardBg,
             Padding = 32,
             HeightRequest = 140,
             Content = _sequenceLabel
@@ -124,6 +125,13 @@ public sealed class NumberRecallGamePage : GameBasePage
         if (string.Equals(_answerEntry.Text?.Trim(), _currentSequence, StringComparison.Ordinal))
         {
             _correct++;
+            HapticService.Click();
+            SoundService.PlayCorrect();
+        }
+        else
+        {
+            HapticService.Error();
+            SoundService.PlayWrong();
         }
 
         _round++;

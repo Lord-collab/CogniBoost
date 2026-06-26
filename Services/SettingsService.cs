@@ -1,43 +1,39 @@
 namespace CogniBoost.Services;
 
-/// <summary>
-/// Пользовательские настройки приложения: тема и размер текста.
-/// Настройки глобальные (не привязаны к аккаунту).
-/// </summary>
 public static class SettingsService
 {
-    private const string ThemeKey    = "cb_theme";
+    private const string ThemeKey = "cb_theme";
     private const string LargeTextKey = "cb_large_text";
-    private const string LanguageKey  = "cb_language"; // "ru" | "en"
-
-    /// <summary>Ссылка на скачивание APK.</summary>
+    private const string SoundKey = "cb_sound";
     public const string AppDownloadUrl = "https://github.com/Lord-collab/CogniBoost/releases/latest";
-    public const string AppVersion     = "1.0.0";
+    public const string AppVersion = "1.0.0";
 
     public static string Theme
     {
-        get => Preferences.Default.Get(ThemeKey, "system");
-        set => Preferences.Default.Set(ThemeKey, value);
+        get => DatabaseService.Sync(async () =>
+            await DatabaseService.GetSettingAsync(ThemeKey, "system"));
+        set => DatabaseService.Sync(async () =>
+            await DatabaseService.SetSettingAsync(ThemeKey, value));
     }
 
     public static bool LargeText
     {
-        get => Preferences.Default.Get(LargeTextKey, false);
-        set => Preferences.Default.Set(LargeTextKey, value);
+        get => DatabaseService.Sync(async () =>
+            await DatabaseService.GetSettingAsync(LargeTextKey, "false")) == "true";
+        set => DatabaseService.Sync(async () =>
+            await DatabaseService.SetSettingAsync(LargeTextKey, value ? "true" : "false"));
     }
 
-    public static string Language
+    public static bool SoundEnabled
     {
-        get => Preferences.Default.Get(LanguageKey, "ru");
-        set => Preferences.Default.Set(LanguageKey, value);
+        get => DatabaseService.Sync(async () =>
+            await DatabaseService.GetSettingAsync(SoundKey, "true")) == "true";
+        set => DatabaseService.Sync(async () =>
+            await DatabaseService.SetSettingAsync(SoundKey, value ? "true" : "false"));
     }
 
-    public static bool IsEnglish => Language == "en";
-
-    /// <summary>Множитель размера текста для accessibility.</summary>
     public static double TextScale => LargeText ? 1.15 : 1.0;
 
-    /// <summary>Применяет тему и обновляет масштаб текста на активной странице немедленно.</summary>
     public static void ApplyAll()
     {
         ApplyTheme();
@@ -50,13 +46,9 @@ public static class SettingsService
         }
     }
 
-    /// <summary>Применяет выбранную тему к приложению.</summary>
     public static void ApplyTheme()
     {
-        if (Application.Current is null)
-        {
-            return;
-        }
+        if (Application.Current is null) return;
 
         Application.Current.UserAppTheme = Theme switch
         {
@@ -66,28 +58,18 @@ public static class SettingsService
         };
     }
 
-    // Сохраняем исходный размер шрифта элемента, чтобы масштабирование было обратимым.
     private static readonly BindableProperty BaseFontSizeProperty = BindableProperty.CreateAttached(
         "BaseFontSize", typeof(double), typeof(SettingsService), -1d);
 
-    /// <summary>
-    /// Рекурсивно применяет текущий масштаб текста ко всем подписям, кнопкам и полям
-    /// на странице. Вызывается в OnAppearing после построения контента.
-    /// </summary>
     public static void ApplyTextScale(ContentPage page)
     {
         if (page.Content is not null)
-        {
             ApplyTextScale(page.Content, TextScale);
-        }
     }
 
     private static void ApplyTextScale(Element? element, double scale)
     {
-        if (element is null)
-        {
-            return;
-        }
+        if (element is null) return;
 
         switch (element)
         {
@@ -106,17 +88,12 @@ public static class SettingsService
         }
 
         foreach (var child in GetChildren(element))
-        {
             ApplyTextScale(child, scale);
-        }
     }
 
     private static void ScaleFont(BindableObject target, double currentSize, Action<double> setter, double scale)
     {
-        if (currentSize <= 0)
-        {
-            return;
-        }
+        if (currentSize <= 0) return;
 
         var baseSize = (double)target.GetValue(BaseFontSizeProperty);
         if (baseSize <= 0)
@@ -146,9 +123,7 @@ public static class SettingsService
         if (element is Layout layout)
         {
             foreach (var child in layout.Children.OfType<Element>())
-            {
                 yield return child;
-            }
         }
     }
 }

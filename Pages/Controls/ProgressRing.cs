@@ -3,8 +3,8 @@ namespace CogniBoost.Pages.Controls;
 public sealed class ProgressRingDrawable : IDrawable
 {
     public float Progress { get; set; }
-    public Color TrackColor { get; set; } = Color.FromArgb("#E5E7EB");
-    public Color ProgressColor { get; set; } = Color.FromArgb("#4F46E5");
+    public Color TrackColor { get; set; } = ThemeColors.Divider;
+    public Color ProgressColor { get; set; } = ThemeColors.Accent;
     public float Thickness { get; set; } = 10;
     public string? CenterText { get; set; }
     public Color? CenterTextColor { get; set; }

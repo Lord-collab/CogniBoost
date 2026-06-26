@@ -1,10 +1,11 @@
 using CogniBoost.Models;
+using CogniBoost.Services;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages.Games;
 
 /// <summary>
-/// «Быстрый тап»: появляется цветная цель. Нужно тапать только по зелёным
+/// «Быстрая реакция»: появляется цветная цель. Нужно нажимать только на зелёные
 /// и не трогать красные. Счёт — число верных реакций за N раундов.
 /// </summary>
 public sealed class ReactionGamePage : GameBasePage
@@ -29,7 +30,7 @@ public sealed class ReactionGamePage : GameBasePage
         {
             StrokeShape = new RoundRectangle { CornerRadius = 24 },
             Stroke = Colors.Transparent,
-            BackgroundColor = Color.FromArgb("#E5E7EB"),
+            BackgroundColor = ThemeColors.Border,
             HeightRequest = 220,
             Content = new Label
             {
@@ -54,10 +55,10 @@ public sealed class ReactionGamePage : GameBasePage
     private void BuildUi()
     {
         _statusLabel.FontSize = 16;
-        _statusLabel.TextColor = Color.FromArgb("#6B7280");
-
-        _instructionLabel.FontSize = 14;
-        _instructionLabel.TextColor = Color.FromArgb("#6B7280");
+        _statusLabel.TextColor = ThemeColors.TextSecondary;
+ 
+         _instructionLabel.FontSize = 14;
+         _instructionLabel.TextColor = ThemeColors.TextSecondary;
         _instructionLabel.Text = "Тапай по ЗЕЛЁНОМУ. Не трогай КРАСНЫЙ.";
 
         UpdateStatus();
@@ -126,7 +127,7 @@ public sealed class ReactionGamePage : GameBasePage
     {
         return MainThread.InvokeOnMainThreadAsync(() =>
         {
-            _target.BackgroundColor = Color.FromArgb("#E5E7EB");
+            _target.BackgroundColor = ThemeColors.Border;
             SetTargetText("Жди…");
         });
     }
@@ -136,8 +137,8 @@ public sealed class ReactionGamePage : GameBasePage
         MainThread.BeginInvokeOnMainThread(() =>
         {
             _target.BackgroundColor = _isGoTarget
-                ? Color.FromArgb("#10B981")
-                : Color.FromArgb("#EF4444");
+                ? ThemeColors.Success
+                : ThemeColors.Error;
             SetTargetText(_isGoTarget ? "ТАП!" : "СТОП");
         });
     }
@@ -162,8 +163,14 @@ public sealed class ReactionGamePage : GameBasePage
         if (_isGoTarget)
         {
             _score++;
+            HapticService.Click();
+            SoundService.PlayCorrect();
         }
-        // Тап по красному — промах, очко не начисляется.
+        else
+        {
+            HapticService.Error();
+            SoundService.PlayWrong();
+        }
 
         _round++;
         UpdateStatus();

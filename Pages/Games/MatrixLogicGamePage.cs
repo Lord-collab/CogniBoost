@@ -1,38 +1,24 @@
 using CogniBoost.Models;
+using CogniBoost.Services;
 
 namespace CogniBoost.Pages.Games;
 
-/// <summary>
-/// «Матрица»: аналогия вида А:Б = В:? — выбери подходящее слово.
-/// </summary>
 public sealed class MatrixLogicGamePage : QuizGamePage
 {
+    private static List<QuizQuestion>? _cache;
+
+    private static async Task<List<QuizQuestion>> LoadAsync()
+    {
+        if (_cache is not null) return _cache;
+        var items = await ContentLoader.LoadListAsync<MatrixQ>("matrix_questions.json");
+        _cache = items.Select(q => new QuizQuestion(q.Prompt, q.Options, q.Correct)).ToList();
+        return _cache;
+    }
+
     public MatrixLogicGamePage()
-        : base(GameCatalog.Get("matrix_logic")!, Build())
+        : base(GameCatalog.Get("matrix_logic")!, Task.Run(LoadAsync).GetAwaiter().GetResult())
     {
     }
 
-    private static IEnumerable<QuizQuestion> Build()
-    {
-        var rng = new Random();
-        var pool = new List<QuizQuestion>
-        {
-            new("Врач : больница = учитель : ?",     new[]{"Школа","Завод","Стройка","Магазин"}, 0),
-            new("Рыба : вода = птица : ?",            new[]{"Небо","Земля","Лес","Клетка"}, 0),
-            new("Нож : резать = ручка : ?",           new[]{"Рисовать","Писать","Стирать","Строить"}, 1),
-            new("День : свет = ночь : ?",             new[]{"Темнота","Луна","Сон","Звезды"}, 0),
-            new("Автомобиль : дорога = корабль : ?",  new[]{"Море","Воздух","Рельсы","Берег"}, 0),
-            new("Бумага : книга = нитки : ?",         new[]{"Ткань","Ковёр","Одежда","Пряжа"}, 2),
-            new("Яйцо : курица = желудь : ?",         new[]{"Дуб","Орех","Гриб","Куст"}, 0),
-            new("Слово : предложение = кирпич : ?",   new[]{"Цемент","Стена","Здание","Дом"}, 2),
-            new("Гора : высота = озеро : ?",          new[]{"Глубина","Ширина","Берег","Вода"}, 0),
-            new("Самолёт : пилот = корабль : ?",      new[]{"Капитан","Матрос","Механик","Штурман"}, 0),
-            new("Холод : шуба = жара : ?",            new[]{"Пальто","Майка","Зонт","Мороженое"}, 1),
-            new("Перо : птица = чешуя : ?",           new[]{"Змея","Рыба","Ящерица","Тритон"}, 1),
-            new("Алфавит : буква = календарь : ?",    new[]{"Число","День","Месяц","Год"}, 1),
-            new("Парус : ветер = колесо : ?",         new[]{"Мотор","Дорога","Ось","Обод"}, 0),
-            new("Зрение : глаза = слух : ?",          new[]{"Нос","Ухо","Рот","Рука"}, 1),
-        };
-        return pool.OrderBy(_ => rng.Next()).Take(8);
-    }
+    private record MatrixQ(string Prompt, string[] Options, int Correct);
 }

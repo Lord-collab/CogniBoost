@@ -1,3 +1,5 @@
+using CogniBoost.Services;
+
 namespace CogniBoost.Pages;
 
 public partial class WelcomePage : ContentPage
@@ -15,5 +17,11 @@ public partial class WelcomePage : ContentPage
     private async void OnLoginClicked(object? sender, EventArgs e)
     {
         await Navigation.PushAsync(new LoginPage());
+    }
+
+    private void OnGuestClicked(object? sender, EventArgs e)
+    {
+        AccountStore.EnterGuestMode();
+        App.ResetRootPage();
     }
 }

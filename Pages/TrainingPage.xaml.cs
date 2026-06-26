@@ -42,6 +42,12 @@ public partial class TrainingPage : ContentPage
         var streakBonus = streak >= 3 ? 10 * (streak / 3) : 0;
         StreakBonusLabel.Text = streakBonus > 0 ? $"+{streakBonus} ⭐/день" : "";
 
+        // Гостевой режим
+        GuestBanner.IsVisible = AccountStore.IsGuest;
+
+        // Ежедневный челлендж
+        BuildChallenge();
+
         // Ежедневные игры
         BuildDaily(profile);
     }
@@ -52,6 +58,25 @@ public partial class TrainingPage : ContentPage
         2 or 3 or 4 => "дня",
         _ => "дней"
     };
+
+    private void BuildChallenge()
+    {
+        var challenge = DailyChallengeService.GetTodayChallenge();
+        if (challenge is not null)
+        {
+            ChallengeBorder.IsVisible = true;
+            ChallengeTitleLabel.Text = challenge.Emoji + "  " + challenge.Title;
+
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += async (_, _) => await Navigation.PushAsync(challenge.CreatePage());
+            ChallengeBorder.GestureRecognizers.Clear();
+            ChallengeBorder.GestureRecognizers.Add(tap);
+        }
+        else
+        {
+            ChallengeBorder.IsVisible = false;
+        }
+    }
 
     private void BuildDaily(UserProfile? profile)
     {
@@ -165,6 +190,11 @@ public partial class TrainingPage : ContentPage
 
     private async void OnAllGamesClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("//games");
+
+    private async void OnGuestLoginClicked(object? sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new RegisterPage());
+    }
 
     private async void OnQuickGameClicked(object? sender, EventArgs e)
     {

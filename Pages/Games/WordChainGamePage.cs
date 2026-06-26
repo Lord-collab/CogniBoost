@@ -1,43 +1,24 @@
 using CogniBoost.Models;
+using CogniBoost.Services;
 
 namespace CogniBoost.Pages.Games;
 
-/// <summary>
-/// «Цепочка слов»: дано слово — выбери ассоциацию, затем ассоциацию к ней.
-/// Каждая верная цепочка = +1 очко. 60 секунд.
-/// </summary>
 public sealed class WordChainGamePage : QuizGamePage
 {
+    private static List<QuizQuestion>? _cache;
+
+    private static async Task<List<QuizQuestion>> LoadAsync()
+    {
+        if (_cache is not null) return _cache;
+        var items = await ContentLoader.LoadListAsync<WordLink>("word_chain.json");
+        _cache = items.Select(q => new QuizQuestion(q.From, q.Options, q.Correct)).ToList();
+        return _cache;
+    }
+
     public WordChainGamePage()
-        : base(GameCatalog.Get("word_chain")!, Build())
+        : base(GameCatalog.Get("word_chain")!, Task.Run(LoadAsync).GetAwaiter().GetResult())
     {
     }
 
-    private static IEnumerable<QuizQuestion> Build()
-    {
-        // Каждый вопрос: слово → 4 варианта, один — лучшая ассоциация (остальные слабее или нет связи)
-        return new List<QuizQuestion>
-        {
-            new("Море",         new[]{"Волна","Кирпич","Тумбочка","Счёт"}, 0),
-            new("Волна",        new[]{"Прибой","Диван","Печать","Монета"}, 0),
-            new("Лес",          new[]{"Дерево","Лампа","Ключ","Порог"}, 0),
-            new("Дерево",       new[]{"Ветка","Провод","Краска","Гвоздь"}, 0),
-            new("Музыка",       new[]{"Нота","Асфальт","Гайка","Журнал"}, 0),
-            new("Нота",         new[]{"Мелодия","Ворота","Пакет","Доска"}, 0),
-            new("Огонь",        new[]{"Пламя","Холодильник","Болт","Штора"}, 0),
-            new("Пламя",        new[]{"Тепло","Бетон","Щётка","Шуруп"}, 0),
-            new("Книга",        new[]{"Страница","Асфальт","Кастрюля","Замок"}, 0),
-            new("Страница",     new[]{"Текст","Трактор","Перила","Фреза"}, 0),
-            new("Небо",         new[]{"Облако","Канализация","Затвор","Гараж"}, 0),
-            new("Облако",       new[]{"Дождь","Поршень","Рельс","Секира"}, 0),
-            new("Звезда",       new[]{"Свет","Гудрон","Токарь","Пресс"}, 0),
-            new("Свет",         new[]{"Луч","Бочка","Клапан","Штамп"}, 0),
-            new("Дорога",       new[]{"Путь","Диод","Матрица","Фасон"}, 0),
-            new("Путь",         new[]{"Маршрут","Сплав","Кулак","Запор"}, 0),
-            new("Вода",         new[]{"Река","Плита","Гайка","Браслет"}, 0),
-            new("Река",         new[]{"Берег","Шестерня","Циклон","Сейф"}, 0),
-            new("Ветер",        new[]{"Парус","Болванка","Цапфа","Зазор"}, 0),
-            new("Парус",        new[]{"Корабль","Поршень","Трамплин","Борт"}, 0),
-        };
-    }
+    private record WordLink(string From, string[] Options, int Correct);
 }

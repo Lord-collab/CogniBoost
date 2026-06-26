@@ -17,7 +17,7 @@ public sealed class AvatarPickerPage : ContentPage
     public AvatarPickerPage()
     {
         Title = "Выбери аватар";
-        BackgroundColor = Color.FromArgb("#F0F1FA");
+        BackgroundColor = ThemeColors.PageBg;
         BuildUi();
     }
 
@@ -36,7 +36,7 @@ public sealed class AvatarPickerPage : ContentPage
             {
                 StrokeShape = new RoundRectangle { CornerRadius = 16 },
                 Stroke = Colors.Transparent,
-                BackgroundColor = Colors.White,
+                BackgroundColor = ThemeColors.CardBg,
                 Padding = 4,
                 Margin = new Thickness(5),
                 WidthRequest = 64,
@@ -69,7 +69,7 @@ public sealed class AvatarPickerPage : ContentPage
                 {
                     new Label { Text = "Выбери свой аватар", FontSize = 20,
                         FontAttributes = FontAttributes.Bold,
-                        TextColor = Color.FromArgb("#0D0D2B") },
+                        TextColor = ThemeColors.TextPrimary },
                     grid
                 }
             }

@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     Shell.NavBarIsVisible="False"
     NavigationPage.HasNavigationBar="False"
-    BackgroundColor="{StaticResource BrandIndigo}">
+    BackgroundColor="{StaticResource Primary}">
 
     <Grid Padding="28" RowDefinitions="*,Auto">
 
@@ -20,7 +20,7 @@
             <Label
                 Text="Тренируй память, внимание, логику и язык каждый день"
                 FontSize="16"
-                TextColor="#E0E7FF"
+                TextColor="{StaticResource PrimaryLight}"
                 HorizontalTextAlignment="Center" />
         </VerticalStackLayout>
 
@@ -29,7 +29,7 @@
                 Text="Создать аккаунт"
                 Clicked="OnRegisterClicked"
                 BackgroundColor="White"
-                TextColor="{StaticResource BrandIndigo}"
+                TextColor="{StaticResource Primary}"
                 FontAttributes="Bold"
                 HeightRequest="52"
                 CornerRadius="14" />
@@ -41,6 +41,14 @@
                 BorderColor="White"
                 BorderWidth="1"
                 HeightRequest="52"
+                CornerRadius="14" />
+            <Button
+                Text="Попробовать без входа"
+                Clicked="OnGuestClicked"
+                BackgroundColor="Transparent"
+                TextColor="#C0C0D0"
+                FontSize="14"
+                HeightRequest="44"
                 CornerRadius="14" />
         </VerticalStackLayout>
 

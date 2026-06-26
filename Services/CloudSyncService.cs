@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -265,6 +266,257 @@ public static class CloudSyncService
         return result;
     }
 
-    // DTO для десериализации ответа
+    // ----------------------------------------------------------------
+    // Восстановление данных из облака при входе на новом устройстве
+    // ----------------------------------------------------------------
+
+    /// <summary>
+    /// Найти игрока в Supabase по username и восстановить все данные
+    /// в локальный Preferences (профиль, очки, игры, тесты).
+    /// Если локальные данные уже есть — ничего не перезаписываем.
+    /// </summary>
+    public static async Task<CloudSyncResult> RestorePlayerDataAsync(
+        string username, string password)
+    {
+        if (!IsEnabled)
+            return new CloudSyncResult(false, "Облако не настроено.");
+
+        try
+        {
+            var usernameKey = (username ?? string.Empty).Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(usernameKey))
+                return new CloudSyncResult(false, "Введите имя пользователя.");
+
+            // 1. Ищем игрока в Supabase
+            var player = await FetchPlayerAsync(usernameKey);
+            if (player is null)
+                return new CloudSyncResult(false,
+                    "Пользователь не найден в облаке. Сначала зарегистрируйтесь на другом устройстве.");
+
+            // 2. Если локально уже есть данные — не трогаем
+            var existingGame = await DatabaseService.Db
+                .Table<GameResultEntity>()
+                .Where(g => g.UsernameKey == usernameKey)
+                .FirstOrDefaultAsync();
+            if (existingGame is not null)
+                return new CloudSyncResult(true, "Локальные данные актуальны.");
+
+            // 3. Создаём локальный аккаунт (если его нет)
+            if (!AccountStore.TrySignIn(username ?? string.Empty, password ?? string.Empty, out _))
+                AccountStore.SaveAccount(
+                    string.IsNullOrWhiteSpace(player.display_name) ? username ?? usernameKey : player.display_name,
+                    player.age,
+                    password ?? string.Empty);
+
+            // 4. Восстанавливаем профиль
+            await RestoreProfileAsync(player);
+
+            // 5. Восстанавливаем очки
+            await RestoreScoresAsync(player.id, usernameKey);
+
+            // 6. Восстанавливаем историю игр
+            await RestoreGameHistoryAsync(player.id, usernameKey);
+
+            // 7. Восстанавливаем результаты тестов
+            await RestoreTestResultsAsync(player.id, usernameKey);
+
+            return new CloudSyncResult(true, "Данные восстановлены из облака.");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[CloudSync] Restore error: {ex}");
+            return new CloudSyncResult(false, $"Ошибка восстановления: {ex.Message}");
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // DTO для загрузки данных из Supabase
+    // ----------------------------------------------------------------
+
     private sealed record PlayerRow(string id);
+
+    private sealed record PlayerFullRow(
+        string id,
+        string username,
+        string? display_name,
+        string? avatar_emoji,
+        int age);
+
+    private sealed record ScoresRow(
+        string player_id,
+        int points_balance,
+        int points_lifetime);
+
+    private sealed record GameScoreRow(
+        string player_id,
+        string game_id,
+        int best_score,
+        int accuracy_pct,
+        string last_played_at);
+
+    private sealed record TestResultRow(
+        string id,
+        string player_id,
+        string test_id,
+        int iq_score,
+        int correct,
+        int total,
+        string played_at);
+
+    // ----------------------------------------------------------------
+    // Приватные методы восстановления
+    // ----------------------------------------------------------------
+
+    private static async Task<PlayerFullRow?> FetchPlayerAsync(string usernameKey)
+    {
+        var url = $"/rest/v1/players?username=eq.{usernameKey}&select=*";
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        using var resp = await Http.SendAsync(req);
+        if (!resp.IsSuccessStatusCode) return null;
+
+        var body = await resp.Content.ReadAsStringAsync();
+        var rows = JsonSerializer.Deserialize<List<PlayerFullRow>>(body, JsonOpts);
+        return rows?.FirstOrDefault();
+    }
+
+    private static async Task RestoreProfileAsync(PlayerFullRow player)
+    {
+        var user = await DatabaseService.Db.FindAsync<UserEntity>(player.username);
+        if (user is null) return;
+
+        if (!string.IsNullOrWhiteSpace(player.avatar_emoji))
+            user.AvatarEmoji = player.avatar_emoji;
+
+        await DatabaseService.Db.UpdateAsync(user);
+    }
+
+    private static async Task RestoreScoresAsync(string playerId, string usernameKey)
+    {
+        var url = $"/rest/v1/player_scores?player_id=eq.{playerId}&select=points_balance,points_lifetime";
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        using var resp = await Http.SendAsync(req);
+        if (!resp.IsSuccessStatusCode) return;
+
+        var body = await resp.Content.ReadAsStringAsync();
+        var rows = JsonSerializer.Deserialize<List<ScoresRow>>(body, JsonOpts);
+        var row = rows?.FirstOrDefault();
+        if (row is null) return;
+
+        var user = await DatabaseService.Db.FindAsync<UserEntity>(usernameKey);
+        if (user is null) return;
+
+        user.PointsBalance = row.points_balance;
+        user.PointsLifetime = row.points_lifetime;
+        await DatabaseService.Db.UpdateAsync(user);
+    }
+
+    private static async Task RestoreGameHistoryAsync(string playerId, string usernameKey)
+    {
+        var url = $"/rest/v1/game_scores?player_id=eq.{playerId}&select=*";
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        using var resp = await Http.SendAsync(req);
+        if (!resp.IsSuccessStatusCode) return;
+
+        var body = await resp.Content.ReadAsStringAsync();
+        var rows = JsonSerializer.Deserialize<List<GameScoreRow>>(body, JsonOpts);
+        if (rows is null || rows.Count == 0) return;
+
+        foreach (var r in rows)
+        {
+            var gameMeta = GetGameMeta(r.game_id);
+            var accuracy = r.accuracy_pct / 100.0;
+            var maxScore = accuracy > 0
+                ? (int)Math.Round(r.best_score / accuracy)
+                : r.best_score;
+
+            await DatabaseService.Db.InsertAsync(new GameResultEntity
+            {
+                UsernameKey = usernameKey,
+                GameId = r.game_id,
+                GameTitle = gameMeta.Title,
+                Skill = (int)gameMeta.Skill,
+                Score = r.best_score,
+                MaxScore = maxScore,
+                EarnedPoints = 0,
+                PlayedAtUtc = ParseUtc(r.last_played_at)
+            });
+        }
+    }
+
+    private static async Task RestoreTestResultsAsync(string playerId, string usernameKey)
+    {
+        var url = $"/rest/v1/test_results?player_id=eq.{playerId}&select=*&order=played_at.desc";
+        var req = new HttpRequestMessage(HttpMethod.Get, url);
+        using var resp = await Http.SendAsync(req);
+        if (!resp.IsSuccessStatusCode) return;
+
+        var body = await resp.Content.ReadAsStringAsync();
+        var rows = JsonSerializer.Deserialize<List<TestResultRow>>(body, JsonOpts);
+        if (rows is null || rows.Count == 0) return;
+
+        foreach (var r in rows)
+        {
+            await DatabaseService.Db.InsertAsync(new TestResultEntity
+            {
+                UsernameKey = usernameKey,
+                TestId = r.test_id,
+                TestTitle = GetTestTitle(r.test_id),
+                CorrectAnswers = r.correct,
+                TotalQuestions = r.total,
+                IqScore = r.iq_score,
+                EarnedPoints = 0,
+                PlayedAtUtc = ParseUtc(r.played_at)
+            });
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // Вспомогательные методы
+    // ----------------------------------------------------------------
+
+    private static (string Title, BrainSkill Skill) GetGameMeta(string gameId)
+    {
+        return gameId.ToLowerInvariant() switch
+        {
+            "memory_pairs"    => ("Найди пары", BrainSkill.Memory),
+            "color_sequence"  => ("Цветовая память", BrainSkill.Memory),
+            "number_recall"   => ("Запомни число", BrainSkill.Memory),
+            "reaction_tap"    => ("Быстрая реакция", BrainSkill.Focus),
+            "spot_difference" => ("Найди изменение", BrainSkill.Focus),
+            "stroop_color"    => ("Истинный цвет", BrainSkill.Focus),
+            "number_series"   => ("Числовой ряд", BrainSkill.Logic),
+            "matrix_logic"    => ("Матрица", BrainSkill.Logic),
+            "odd_word"        => ("Лишнее слово", BrainSkill.Language),
+            "word_chain"      => ("Цепочка слов", BrainSkill.Language),
+            "simon_says"      => ("Повтори ряд", BrainSkill.Memory),
+            "sudoku_mini"     => ("Судоку-мини", BrainSkill.Logic),
+            "balance_scale"   => ("Весы", BrainSkill.Logic),
+            "anagrams"        => ("Анаграммы", BrainSkill.Language),
+            _                 => (gameId, BrainSkill.Logic),
+        };
+    }
+
+    private static string GetTestTitle(string testId)
+    {
+        return testId.ToLowerInvariant() switch
+        {
+            "iq_express"     => "Экспресс IQ-тест",
+            "memory_words"   => "Тест памяти",
+            "focus_test"     => "Тест внимания",
+            "logic_test"     => "Тест на логику",
+            "numerical_test" => "Числовой тест",
+            _                => testId,
+        };
+    }
+
+    private static DateTime ParseUtc(string iso)
+    {
+        if (DateTime.TryParse(iso, CultureInfo.InvariantCulture,
+                DateTimeStyles.AdjustToUniversal, out var dt))
+            return dt.Kind == DateTimeKind.Unspecified
+                ? DateTime.SpecifyKind(dt, DateTimeKind.Utc)
+                : dt.ToUniversalTime();
+        return DateTime.UtcNow;
+    }
+
 }

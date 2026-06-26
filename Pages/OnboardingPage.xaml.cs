@@ -79,8 +79,8 @@ public partial class OnboardingPage : ContentPage
         }
 
         public string CheckMark => _isSelected ? "\u2714" : string.Empty;
-        public Color BorderColor => _isSelected ? AccentColor : Color.FromArgb("#E5E7EB");
-        public Color CardColor => _isSelected ? Color.FromArgb("#FFFFFF") : Color.FromArgb("#FFFFFF");
+        public Color BorderColor => _isSelected ? AccentColor : ThemeColors.Border;
+        public Color CardColor => ThemeColors.CardBg;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

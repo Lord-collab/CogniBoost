@@ -6,9 +6,9 @@
     Title="Игры"
     BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}">
 
-    <VerticalStackLayout Spacing="0">
+    <Grid RowDefinitions="Auto,Auto,*">
         <!-- Header + Search -->
-        <VerticalStackLayout Padding="20,16,20,12" Spacing="12">
+        <VerticalStackLayout Grid.Row="0" Padding="20,16,20,12" Spacing="12">
             <Label Text="Игры" FontSize="28" FontAttributes="Bold"
                    TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
             
@@ -23,13 +23,13 @@
         </VerticalStackLayout>
 
         <!-- Category Chips -->
-        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Margin="20,0,20,8">
+        <ScrollView Grid.Row="1" Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Margin="20,0,20,8">
             <HorizontalStackLayout x:Name="CategoryChips" Spacing="8" Padding="0,0,20,0" />
         </ScrollView>
 
-        <!-- Games Grid/List -->
-        <ScrollView x:Name="GamesScroll">
+        <!-- Games Grid/List (занимает оставшееся место, скроллится) -->
+        <ScrollView Grid.Row="2" x:Name="GamesScroll">
             <VerticalStackLayout x:Name="GamesList" Padding="20,0,20,20" Spacing="12" />
         </ScrollView>
-    </VerticalStackLayout>
+    </Grid>
 </ContentPage>

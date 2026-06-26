@@ -1,4 +1,5 @@
 using CogniBoost.Models;
+using CogniBoost.Services;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages.Games;
@@ -50,20 +51,20 @@ public sealed class SpotDifferenceGamePage : GameBasePage
     private void BuildUi()
     {
         _statusLabel.FontSize  = 14;
-        _statusLabel.TextColor = Color.FromArgb("#7B7BA8");
+        _statusLabel.TextColor = ThemeColors.TextMuted;
 
         _beforeLabel.FontSize    = 15;
-        _beforeLabel.TextColor   = Color.FromArgb("#0D0D2B");
+        _beforeLabel.TextColor   = ThemeColors.TextPrimary;
         _beforeLabel.LineBreakMode = LineBreakMode.WordWrap;
 
         _afterLabel.FontSize     = 15;
-        _afterLabel.TextColor    = Color.FromArgb("#0D0D2B");
+        _afterLabel.TextColor    = ThemeColors.TextPrimary;
         _afterLabel.LineBreakMode = LineBreakMode.WordWrap;
 
         var card = new Border
         {
             StrokeShape = new RoundRectangle { CornerRadius = 18 },
-            Stroke = Colors.Transparent, BackgroundColor = Colors.White,
+            Stroke = Colors.Transparent, BackgroundColor = ThemeColors.CardBg,
             Padding = 20,
             Content = new VerticalStackLayout
             {
@@ -71,11 +72,11 @@ public sealed class SpotDifferenceGamePage : GameBasePage
                 Children =
                 {
                     new Label { Text = "Список 1", FontSize = 12,
-                        TextColor = Color.FromArgb("#7B7BA8") },
+                        TextColor = ThemeColors.TextMuted },
                     _beforeLabel,
-                    new BoxView { HeightRequest = 1, Color = Color.FromArgb("#E4E5F5") },
+                    new BoxView { HeightRequest = 1, Color = ThemeColors.Divider },
                     new Label { Text = "Список 2", FontSize = 12,
-                        TextColor = Color.FromArgb("#7B7BA8") },
+                        TextColor = ThemeColors.TextMuted },
                     _afterLabel,
                 }
             }
@@ -127,8 +128,8 @@ public sealed class SpotDifferenceGamePage : GameBasePage
             var btn = new Button
             {
                 Text = opt, FontSize = 17, HeightRequest = 50, CornerRadius = 14,
-                BackgroundColor = Colors.White, TextColor = Color.FromArgb("#0D0D2B"),
-                BorderColor = Color.FromArgb("#E4E5F5"), BorderWidth = 1
+                BackgroundColor = ThemeColors.CardBg, TextColor = ThemeColors.TextPrimary,
+                BorderColor = ThemeColors.Divider, BorderWidth = 1
             };
             var optCopy = opt;
             btn.Clicked += (_, _) => OnAnswer(optCopy, btn);
@@ -146,11 +147,17 @@ public sealed class SpotDifferenceGamePage : GameBasePage
             _correct++;
             button.BackgroundColor = Accent;
             button.TextColor = Colors.White;
+            HapticService.Click();
+            SoundService.PlayCorrect();
+            _ = button.PopAsync();
         }
         else
         {
-            button.BackgroundColor = Color.FromArgb("#FF5370");
+            button.BackgroundColor = ThemeColors.Error;
             button.TextColor = Colors.White;
+            HapticService.Error();
+            SoundService.PlayWrong();
+            _ = button.ShakeAsync();
         }
 
         await Task.Delay(700);

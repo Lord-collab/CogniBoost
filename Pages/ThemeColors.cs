@@ -25,8 +25,10 @@ public static class ThemeColors
     public static Color AccentLight => Color.FromArgb("#EEF2FF");
     public static Color AccentDark  => Color.FromArgb("#6366F1");
     public static Color Secondary   => Color.FromArgb("#06B6D4");
+    public static Color Tertiary    => Color.FromArgb("#7C3AED");
     public static Color Success     => Color.FromArgb("#10B981");
     public static Color Warning     => Color.FromArgb("#F59E0B");
+    public static Color WarningLight => Color.FromArgb("#FEF3C7");
     public static Color Error       => Color.FromArgb("#EF4444");
 
     // Skill colors (consistent across app)

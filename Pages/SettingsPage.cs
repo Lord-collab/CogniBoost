@@ -3,24 +3,13 @@ using CogniBoost.Services;
 using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.ApplicationModel;
 using Permissions = Microsoft.Maui.ApplicationModel.Permissions;
+using Microsoft.Maui.Devices;
 
 namespace CogniBoost.Pages;
 
 public sealed class SettingsPage : ContentPage
 {
-    private static bool IsDark => Application.Current?.RequestedTheme == AppTheme.Dark;
-    private static Color Bg => Color.FromArgb(IsDark ? "#0A0B18" : "#F0F1FA");
-    private static Color Card => Color.FromArgb(IsDark ? "#13142A" : "#FFFFFF");
-    private static Color Txt => Color.FromArgb(IsDark ? "#E8E8FF" : "#0D0D2B");
-    private static Color Muted => Color.FromArgb(IsDark ? "#6B6C99" : "#7B7BA8");
-
-    // Новые динамические цвета для адаптации обводок и меток
-    private static Color RowText => Color.FromArgb(IsDark ? "#E8E8FF" : "#0D0D2B");
-    private static Color BorderStroke => Color.FromArgb(IsDark ? "#2A2B5C" : "#E4E5F5");
-    private static Color EntryText => Color.FromArgb(IsDark ? "#E8E8FF" : "#0D0D2B");
-
     private readonly Picker _themePicker = new();
-    private readonly Picker _langPicker = new();
     private readonly Switch _largeTextSwitch = new();
     private readonly Switch _notifSwitch = new();
     private readonly TimePicker _timePicker = new();
@@ -29,55 +18,48 @@ public sealed class SettingsPage : ContentPage
 
     private static readonly (string Label, string Value)[] Themes =
     {
-        (L10n.T("Settings_ThemeSystem"), "system"),
-        (L10n.T("Settings_ThemeLight"),  "light"),
-        (L10n.T("Settings_ThemeDark"),   "dark"),
-    };
-
-    private static readonly (string Label, string Value)[] Languages =
-    {
-        ("Русский", "ru"),
-        ("English", "en"),
+        ("Системная", "system"),
+        ("Светлая",   "light"),
+        ("Тёмная",    "dark"),
     };
 
     public SettingsPage()
     {
-        Title = L10n.T("Settings_Title");
-        BackgroundColor = Bg;
+        Title = "Настройки";
+        BackgroundColor = ThemeColors.PageBg;
         BuildUi();
     }
 
     private void BuildUi()
     {
-        // ── Аккаунт ───────────────────────────────────────────────────
         AccountStore.TryGetCurrentProfile(out var profile);
 
         _nameEntry.Text = profile?.Username ?? string.Empty;
-        _nameEntry.Placeholder = L10n.T("Settings_DisplayName");
-        _nameEntry.BackgroundColor = Card;
-        _nameEntry.TextColor = EntryText;
+        _nameEntry.Placeholder = "Отображаемое имя";
+        _nameEntry.BackgroundColor = ThemeColors.CardBg;
+        _nameEntry.TextColor = ThemeColors.TextPrimary;
 
         _ageEntry.Text = profile?.Age > 0 ? profile.Age.ToString() : string.Empty;
-        _ageEntry.Placeholder = L10n.T("Settings_Age");
-        _ageEntry.BackgroundColor = Card;
-        _ageEntry.TextColor = EntryText;
+        _ageEntry.Placeholder = "Возраст";
+        _ageEntry.BackgroundColor = ThemeColors.CardBg;
+        _ageEntry.TextColor = ThemeColors.TextPrimary;
 
-        var saveProfileBtn = MakeButton(L10n.T("Common_Save"), "#6C63FF");
+        var saveProfileBtn = MakeButton("Сохранить", ThemeColors.Accent);
         saveProfileBtn.Clicked += OnSaveProfile;
 
-        var changePasswordBtn = MakeButton(L10n.T("Settings_ChangePassword"), "#9B59F5");
+        var changePasswordBtn = MakeButton("Сменить пароль", ThemeColors.Tertiary);
         changePasswordBtn.Clicked += async (_, _) => await Navigation.PushAsync(new ChangePasswordPage());
 
-        var changeDirectionsBtn = MakeButton(L10n.T("Settings_ChangeDirections"), "#1DE9C8", textColor: "#0D0D2B");
+        var changeDirectionsBtn = MakeButton("Изменить направления", ThemeColors.Secondary, textColorC: Colors.White);
         changeDirectionsBtn.Clicked += OnChangeDirections;
 
-        var accountSection = BuildSection(L10n.T("Settings_Account"), new VerticalStackLayout
+        var accountSection = BuildSection("Аккаунт", new VerticalStackLayout
         {
             Spacing = 10,
             Children =
             {
-                BuildLabeledEntry(L10n.T("Settings_DisplayName"), _nameEntry),
-                BuildLabeledEntry(L10n.T("Settings_Age"), _ageEntry),
+                BuildLabeledEntry("Отображаемое имя", _nameEntry),
+                BuildLabeledEntry("Возраст", _ageEntry),
                 saveProfileBtn,
                 changePasswordBtn,
                 changeDirectionsBtn,
@@ -87,8 +69,8 @@ public sealed class SettingsPage : ContentPage
         // ── Оформление ────────────────────────────────────────────────
         foreach (var (label, _) in Themes) _themePicker.Items.Add(label);
         _themePicker.SelectedIndex = Math.Max(0, Array.FindIndex(Themes, t => t.Value == SettingsService.Theme));
-        _themePicker.BackgroundColor = Card;
-        _themePicker.TextColor = EntryText;
+        _themePicker.BackgroundColor = ThemeColors.CardBg;
+        _themePicker.TextColor = ThemeColors.TextPrimary;
         _themePicker.SelectedIndexChanged += (_, _) =>
         {
             var idx = _themePicker.SelectedIndex;
@@ -99,49 +81,47 @@ public sealed class SettingsPage : ContentPage
             }
         };
 
-        foreach (var (label, _) in Languages) _langPicker.Items.Add(label);
-        _langPicker.SelectedIndex = Math.Max(0, Array.FindIndex(Languages, l => l.Value == SettingsService.Language));
-        _langPicker.BackgroundColor = Card;
-        _langPicker.TextColor = EntryText;
-        _langPicker.SelectedIndexChanged += (_, _) =>
-        {
-            var idx = _langPicker.SelectedIndex;
-            if (idx >= 0 && idx < Languages.Length)
-            {
-                SettingsService.Language = Languages[idx].Value;
-                L10n.Load();
-                App.ResetRootPage();
-            }
-        };
-
-        var appearanceSection = BuildSection(L10n.T("Settings_Appearance"), new VerticalStackLayout
+        var appearanceSection = BuildSection("Оформление", new VerticalStackLayout
         {
             Spacing = 10,
             Children =
             {
-                BuildLabeledPicker(L10n.T("Settings_Theme"), _themePicker),
-                BuildLabeledPicker(L10n.T("Settings_Language"), _langPicker),
+                BuildLabeledPicker("Тема", _themePicker),
             }
         });
 
         // ── Доступность ───────────────────────────────────────────────
         _largeTextSwitch.IsToggled = SettingsService.LargeText;
-        _largeTextSwitch.OnColor = Color.FromArgb("#6C63FF");
+        _largeTextSwitch.OnColor = ThemeColors.Accent;
         _largeTextSwitch.Toggled += (_, e) =>
         {
             SettingsService.LargeText = e.Value;
             SettingsService.ApplyAll();
         };
 
-        var accessibilitySection = BuildSection(L10n.T("Settings_Accessibility"), new VerticalStackLayout
+        var accessibilitySection = BuildSection("Доступность", new VerticalStackLayout
         {
             Spacing = 10,
-            Children = { BuildToggleRow(L10n.T("Settings_LargeText"), _largeTextSwitch) }
+            Children = { BuildToggleRow("Крупный текст", _largeTextSwitch) }
+        });
+
+        // ── Звук ──────────────────────────────────────────────────────
+        var soundSwitch = new Switch
+        {
+            IsToggled = SettingsService.SoundEnabled,
+            OnColor = ThemeColors.Accent
+        };
+        soundSwitch.Toggled += (_, e) => SettingsService.SoundEnabled = e.Value;
+
+        var soundSection = BuildSection("Звук", new VerticalStackLayout
+        {
+            Spacing = 10,
+            Children = { BuildToggleRow("Звуковые эффекты", soundSwitch) }
         });
 
         // ── Уведомления ───────────────────────────────────────────────
         _notifSwitch.IsToggled = NotificationService.IsEnabled;
-        _notifSwitch.OnColor = Color.FromArgb("#6C63FF");
+        _notifSwitch.OnColor = ThemeColors.Accent;
         _notifSwitch.Toggled += async (_, e) =>
         {
             if (e.Value && DeviceInfo.Platform == DevicePlatform.Android && DeviceInfo.Version.Major >= 13)
@@ -152,9 +132,9 @@ public sealed class SettingsPage : ContentPage
                     status = await Permissions.RequestAsync<Permissions.PostNotifications>();
                     if (status != PermissionStatus.Granted)
                     {
-                        await DisplayAlertAsync(L10n.T("Common_Error"),
+                        await DisplayAlertAsync("Ошибка",
                             "Для уведомлений нужно разрешение. Включите его в настройках системы.",
-                            L10n.T("Common_OK"));
+                            "OK");
                         _notifSwitch.IsToggled = false;
                         return;
                     }
@@ -169,8 +149,8 @@ public sealed class SettingsPage : ContentPage
 
         _timePicker.Time = NotificationService.ReminderTime;
         _timePicker.IsVisible = NotificationService.IsEnabled;
-        _timePicker.BackgroundColor = Card;
-        _timePicker.TextColor = EntryText;
+        _timePicker.BackgroundColor = ThemeColors.CardBg;
+        _timePicker.TextColor = ThemeColors.TextPrimary;
         _timePicker.PropertyChanged += async (_, e) =>
         {
             if (e.PropertyName == nameof(TimePicker.Time))
@@ -185,40 +165,40 @@ public sealed class SettingsPage : ContentPage
         {
             Text = "Уведомление придёт в выбранное время каждый день.",
             FontSize = 12,
-            TextColor = Muted
+            TextColor = ThemeColors.TextMuted
         };
 
-        var notifSection = BuildSection(L10n.T("Settings_Notifications"), new VerticalStackLayout
+        var notifSection = BuildSection("Уведомления", new VerticalStackLayout
         {
             Spacing = 10,
             Children =
             {
-                BuildToggleRow(L10n.T("Settings_NotifEnabled"), _notifSwitch),
-                BuildLabeledView(L10n.T("Settings_NotifTime"), _timePicker),
+                BuildToggleRow("Напоминание о тренировке", _notifSwitch),
+                BuildLabeledView("Время напоминания", _timePicker),
                 notifHint,
             }
         });
 
         // ── О приложении ──────────────────────────────────────────────
-        var shareBtn = MakeButton(L10n.T("Settings_Share"), "#6C63FF");
+        var shareBtn = MakeButton("Поделиться приложением", ThemeColors.Accent);
         shareBtn.Clicked += async (_, _) => await ShareApp();
 
-        var exportBtn = MakeButton(L10n.T("Settings_ExportStats"), "#1DE9C8", textColor: "#0D0D2B");
+        var exportBtn = MakeButton("Экспортировать статистику", ThemeColors.Secondary, textColorC: Colors.White);
         exportBtn.Clicked += async (_, _) => await ExportStats();
 
-        var resetBtn = MakeButton(L10n.T("Settings_ResetProgress"), "Transparent",
-            textColor: "#FF5370", borderColor: "#FF5370");
+        var resetBtn = MakeButton("Сбросить прогресс", Colors.Transparent,
+            textColorC: ThemeColors.Error, borderColorC: ThemeColors.Error);
         resetBtn.Clicked += async (_, _) => await ResetProgress();
 
         var versionLabel = new Label
         {
             Text = $"CogniBoost v{SettingsService.AppVersion}",
             FontSize = 13,
-            TextColor = Muted,
+            TextColor = ThemeColors.TextMuted,
             HorizontalTextAlignment = TextAlignment.Center
         };
 
-        var aboutSection = BuildSection(L10n.T("Settings_About"), new VerticalStackLayout
+        var aboutSection = BuildSection("О приложении", new VerticalStackLayout
         {
             Spacing = 10,
             Children = { shareBtn, exportBtn, resetBtn, versionLabel }
@@ -232,11 +212,15 @@ public sealed class SettingsPage : ContentPage
                 Spacing = 16,
                 Children =
                 {
-                    new Label { Text = L10n.T("Settings_Title"), FontSize = 28,
-                        FontAttributes = FontAttributes.Bold, TextColor = Txt },
+                    new Label
+                    {
+                        Text = "Настройки", FontSize = 28,
+                        FontAttributes = FontAttributes.Bold, TextColor = ThemeColors.TextPrimary
+                    },
                     accountSection,
                     appearanceSection,
                     accessibilitySection,
+                    soundSection,
                     notifSection,
                     aboutSection,
                 }
@@ -261,11 +245,11 @@ public sealed class SettingsPage : ContentPage
 
         if (errors.Count > 0)
         {
-            await DisplayAlertAsync(L10n.T("Common_Error"), string.Join("\n", errors), L10n.T("Common_OK"));
+            await DisplayAlertAsync("Ошибка", string.Join("\n", errors), "OK");
             return;
         }
 
-        await DisplayAlertAsync(L10n.T("Common_Success"), "Данные профиля обновлены.", L10n.T("Common_OK"));
+        await DisplayAlertAsync("Готово", "Данные профиля обновлены.", "OK");
     }
 
     private void OnChangeDirections(object? sender, EventArgs e)
@@ -333,17 +317,17 @@ public sealed class SettingsPage : ContentPage
         var first = await DisplayAlertAsync(
             "Сброс прогресса",
             "Это удалит всю историю игр, тестов, бонусы, достижения и streak. Аккаунт останется.\n\nПродолжить?",
-            "Да, сбросить", L10n.T("Common_Cancel"));
+            "Да, сбросить", "Отмена");
         if (!first) return;
 
         var second = await DisplayAlertAsync(
             "Подтверждение",
             "Вы уверены? Это действие нельзя отменить.",
-            "Удалить всё", L10n.T("Common_Cancel"));
+            "Удалить всё", "Отмена");
         if (!second) return;
 
         AccountStore.ResetProgress();
-        await DisplayAlertAsync(L10n.T("Common_Success"), "Прогресс сброшен.", L10n.T("Common_OK"));
+        await DisplayAlertAsync("Готово", "Прогресс сброшен.", "OK");
     }
 
     // ── Вспомогательные ──────────────────────────────────────────────
@@ -351,61 +335,65 @@ public sealed class SettingsPage : ContentPage
     {
         return new Border
         {
-            StrokeShape = new RoundRectangle { CornerRadius = 18 },
+            StrokeShape = new RoundRectangle { CornerRadius = 16 },
             Stroke = Colors.Transparent,
-            BackgroundColor = Card,
+            BackgroundColor = ThemeColors.CardBg,
             Padding = new Thickness(16),
             Content = new VerticalStackLayout
             {
                 Spacing = 10,
                 Children =
                 {
-                    new Label { Text = title, FontSize = 13, FontAttributes = FontAttributes.Bold,
-                        TextColor = Muted },
+                    new Label
+                    {
+                        Text = title, FontSize = 13, FontAttributes = FontAttributes.Bold,
+                        TextColor = ThemeColors.TextMuted
+                    },
                     content
                 }
             }
         };
     }
 
-    private static Button MakeButton(string text, string bg, string textColor = "White", string borderColor = "Transparent")
+    private static Button MakeButton(string text, Color bg, Color? textColorC = null, Color? borderColorC = null)
     {
+        var hasBorder = borderColorC != null && borderColorC != Colors.Transparent;
         return new Button
         {
             Text = text,
-            BackgroundColor = Color.FromArgb(bg),
-            TextColor = Color.FromArgb(textColor),
-            BorderColor = Color.FromArgb(borderColor),
-            BorderWidth = borderColor == "Transparent" ? 0 : 1.5,
+            BackgroundColor = bg,
+            TextColor = textColorC ?? Colors.White,
+            BorderColor = borderColorC ?? Colors.Transparent,
+            BorderWidth = hasBorder ? 1.5 : 0,
             FontAttributes = FontAttributes.Bold,
             HeightRequest = 50,
             CornerRadius = 14
         };
     }
 
-    // Использован динамический цвет RowText вместо жестко заданного черного
     private View BuildToggleRow(string label, Switch sw)
     {
         var lbl = new Label
         {
             Text = label,
             FontSize = 15,
-            TextColor = RowText,
+            TextColor = ThemeColors.TextPrimary,
             VerticalOptions = LayoutOptions.Center
         };
-        Grid.SetColumn(sw, 1);
-        return new Grid
+        var grid = new Grid
         {
             ColumnDefinitions =
             {
                 new ColumnDefinition { Width = GridLength.Star },
                 new ColumnDefinition { Width = GridLength.Auto }
             },
-            Children = { lbl, sw }
+            Children = { lbl }
         };
+        Grid.SetColumn(sw, 1);
+        grid.Children.Add(sw);
+        return grid;
     }
 
-    // Использован динамический цвет BorderStroke и Muted для меток
     private View BuildLabeledEntry(string label, Entry entry)
     {
         return new VerticalStackLayout
@@ -413,11 +401,11 @@ public sealed class SettingsPage : ContentPage
             Spacing = 4,
             Children =
             {
-                new Label { Text = label, FontSize = 12, TextColor = Muted },
+                new Label { Text = label, FontSize = 12, TextColor = ThemeColors.TextMuted },
                 new Border
                 {
                     StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                    Stroke = BorderStroke, StrokeThickness = 1,
+                    Stroke = ThemeColors.Border, StrokeThickness = 1,
                     Padding = new Thickness(12, 4),
                     Content = entry
                 }
@@ -432,11 +420,11 @@ public sealed class SettingsPage : ContentPage
             Spacing = 4,
             Children =
             {
-                new Label { Text = label, FontSize = 12, TextColor = Muted },
+                new Label { Text = label, FontSize = 12, TextColor = ThemeColors.TextMuted },
                 new Border
                 {
                     StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                    Stroke = BorderStroke, StrokeThickness = 1,
+                    Stroke = ThemeColors.Border, StrokeThickness = 1,
                     Padding = new Thickness(12, 4),
                     Content = picker
                 }
@@ -451,11 +439,11 @@ public sealed class SettingsPage : ContentPage
             Spacing = 4,
             Children =
             {
-                new Label { Text = label, FontSize = 12, TextColor = Muted },
+                new Label { Text = label, FontSize = 12, TextColor = ThemeColors.TextMuted },
                 new Border
                 {
                     StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                    Stroke = BorderStroke, StrokeThickness = 1,
+                    Stroke = ThemeColors.Border, StrokeThickness = 1,
                     Padding = new Thickness(12, 4),
                     Content = view
                 }

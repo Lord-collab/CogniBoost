@@ -1,19 +1,14 @@
 using CogniBoost.Models;
+using CogniBoost.Services;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages.Games;
 
-/// <summary>
-/// «Найди пары»: сетка карточек, нужно открыть все совпадающие пары.
-/// Счёт зависит от числа попыток (меньше промахов — выше точность).
-/// </summary>
 public sealed class MemoryPairsGamePage : GameBasePage
 {
-    private const int Pairs = 6; // 12 карточек, сетка 3x4
+    private const int Pairs = 6;
 
-    private static readonly string[] Symbols =
-        { "🍎", "🚀", "⭐", "🎵", "🐱", "🌸", "⚽", "🎲", "🍕", "🌙" };
-
+    private static List<string>? _symbols;
     private readonly List<CardButton> _cards = new();
     private readonly Label _statusLabel = new();
 
@@ -28,19 +23,28 @@ public sealed class MemoryPairsGamePage : GameBasePage
         BuildUi();
     }
 
+    private static List<string> GetSymbols()
+    {
+        if (_symbols is not null) return _symbols;
+        _symbols = Task.Run(async () =>
+            await ContentLoader.LoadListAsync<string>("memory_symbols.json"))
+            .GetAwaiter().GetResult();
+        if (_symbols is null || _symbols.Count == 0)
+            _symbols = new List<string> { "🍎", "🚀", "⭐", "🎵", "🐱", "🌸", "⚽", "🎲", "🍕", "🌙" };
+        return _symbols;
+    }
+
     private Color Accent => BrainSkillInfo.Accent(Definition.Skill);
 
     private void BuildUi()
     {
         _statusLabel.FontSize = 16;
-        _statusLabel.TextColor = Color.FromArgb("#6B7280");
+        _statusLabel.TextColor = ThemeColors.TextSecondary;
         UpdateStatus();
 
         var rng = new Random();
-        var deck = Symbols.Take(Pairs)
-            .SelectMany(s => new[] { s, s })
-            .OrderBy(_ => rng.Next())
-            .ToList();
+        var symbols = GetSymbols().OrderBy(_ => rng.Next()).Take(Pairs).ToList();
+        var deck = symbols.SelectMany(s => new[] { s, s }).OrderBy(_ => rng.Next()).ToList();
 
         var grid = new Grid
         {
@@ -56,16 +60,13 @@ public sealed class MemoryPairsGamePage : GameBasePage
 
         var rows = (int)Math.Ceiling(deck.Count / 3.0);
         for (var r = 0; r < rows; r++)
-        {
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        }
 
         for (var i = 0; i < deck.Count; i++)
         {
             var card = new CardButton(deck[i]);
             card.Tapped += OnCardTapped;
             _cards.Add(card);
-
             Grid.SetRow(card.View, i / 3);
             Grid.SetColumn(card.View, i % 3);
             grid.Children.Add(card.View);
@@ -81,10 +82,8 @@ public sealed class MemoryPairsGamePage : GameBasePage
                 {
                     new Label
                     {
-                        Text = Definition.Title,
-                        FontSize = 22,
-                        FontAttributes = FontAttributes.Bold,
-                        TextColor = Accent
+                        Text = Definition.Title, FontSize = 22,
+                        FontAttributes = FontAttributes.Bold, TextColor = Accent
                     },
                     _statusLabel,
                     grid
@@ -100,18 +99,10 @@ public sealed class MemoryPairsGamePage : GameBasePage
 
     private async void OnCardTapped(CardButton card)
     {
-        if (_busy || card.IsMatched || card == _firstPick || card.IsRevealed)
-        {
-            return;
-        }
-
+        if (_busy || card.IsMatched || card == _firstPick || card.IsRevealed) return;
         card.Reveal();
 
-        if (_firstPick is null)
-        {
-            _firstPick = card;
-            return;
-        }
+        if (_firstPick is null) { _firstPick = card; return; }
 
         _busy = true;
         _attempts++;
@@ -123,16 +114,17 @@ public sealed class MemoryPairsGamePage : GameBasePage
             _matchedPairs++;
             _firstPick = null;
             UpdateStatus();
-
-            if (_matchedPairs >= Pairs)
-            {
-                await Task.Delay(400);
-                await FinishWithScore();
-            }
+            HapticService.Click();
+            SoundService.PlayCorrect();
+            _ = card.View.PopAsync();
+            if (_matchedPairs >= Pairs) { await Task.Delay(400); await FinishWithScore(); }
         }
         else
         {
             UpdateStatus();
+            HapticService.Error();
+            SoundService.PlayWrong();
+            _ = card.View.ShakeAsync();
             await Task.Delay(800);
             _firstPick.Hide();
             card.Hide();
@@ -144,14 +136,12 @@ public sealed class MemoryPairsGamePage : GameBasePage
 
     private async Task FinishWithScore()
     {
-        // Идеал — закрыть все пары за Pairs попыток. Лишние попытки снижают счёт.
         var maxScore = 100;
         var penalty = Math.Max(0, _attempts - Pairs) * 8;
         var score = Math.Clamp(maxScore - penalty, 10, maxScore);
         await FinishAsync(score, maxScore);
     }
 
-    /// <summary>Обёртка над карточкой-кнопкой памяти.</summary>
     private sealed class CardButton
     {
         private readonly Border _border;
@@ -162,21 +152,18 @@ public sealed class MemoryPairsGamePage : GameBasePage
             Symbol = symbol;
             _label = new Label
             {
-                Text = string.Empty,
-                FontSize = 32,
+                Text = string.Empty, FontSize = 32,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center
             };
-
             _border = new Border
             {
                 StrokeShape = new RoundRectangle { CornerRadius = 14 },
                 Stroke = Colors.Transparent,
-                BackgroundColor = Color.FromArgb("#E0E7FF"),
+                BackgroundColor = ThemeColors.AccentLight,
                 HeightRequest = 88,
                 Content = _label
             };
-
             var tap = new TapGestureRecognizer();
             tap.Tapped += (_, _) => Tapped?.Invoke(this);
             _border.GestureRecognizers.Add(tap);
@@ -186,21 +173,20 @@ public sealed class MemoryPairsGamePage : GameBasePage
         public View View => _border;
         public bool IsMatched { get; private set; }
         public bool IsRevealed { get; private set; }
-
         public event Action<CardButton>? Tapped;
 
         public void Reveal()
         {
             IsRevealed = true;
             _label.Text = Symbol;
-            _border.BackgroundColor = Colors.White;
+            _border.BackgroundColor = ThemeColors.CardBg;
         }
 
         public void Hide()
         {
             IsRevealed = false;
             _label.Text = string.Empty;
-            _border.BackgroundColor = Color.FromArgb("#E0E7FF");
+            _border.BackgroundColor = ThemeColors.AccentLight;
         }
 
         public void SetMatched(Color accent)

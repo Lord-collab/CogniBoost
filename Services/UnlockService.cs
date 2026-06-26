@@ -3,21 +3,11 @@ using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
-/// <summary>
-/// Управляет разблокировкой игр за бонусные очки.
-/// Стартовые игры доступны всегда; остальные нужно купить.
-/// </summary>
 public static class UnlockService
 {
-    private const string UnlockedPrefix = "cb_unlocked_games_";
-
     public static bool IsUnlocked(GameDefinition game)
     {
-        if (game.Starter)
-        {
-            return true;
-        }
-
+        if (game.Starter) return true;
         return LoadUnlocked().Contains(game.Id, StringComparer.OrdinalIgnoreCase);
     }
 
@@ -36,9 +26,7 @@ public static class UnlockService
         }
 
         if (!PointsService.TrySpend(game.UnlockCost, out message))
-        {
             return false;
-        }
 
         var unlocked = LoadUnlocked();
         unlocked.Add(game.Id);
@@ -49,33 +37,37 @@ public static class UnlockService
 
     private static HashSet<string> LoadUnlocked()
     {
-        var raw = Preferences.Default.Get(UnlockedKey(), string.Empty);
-        if (string.IsNullOrWhiteSpace(raw))
+        return DatabaseService.Sync(async () =>
         {
-            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        }
+            var user = await DatabaseService.Db.FindAsync<UserEntity>(UserKey());
+            if (user?.UnlockedGamesJson is null)
+                return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        try
-        {
-            var list = JsonSerializer.Deserialize<List<string>>(raw) ?? new List<string>();
-            return new HashSet<string>(list, StringComparer.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        }
+            try
+            {
+                var list = JsonSerializer.Deserialize<List<string>>(user.UnlockedGamesJson)
+                           ?? new List<string>();
+                return new HashSet<string>(list, StringComparer.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            }
+        });
     }
 
     private static void SaveUnlocked(HashSet<string> unlocked)
     {
-        Preferences.Default.Set(UnlockedKey(), JsonSerializer.Serialize(unlocked.ToList()));
-    }
+        DatabaseService.Sync(async () =>
+        {
+            var user = await DatabaseService.Db.FindAsync<UserEntity>(UserKey());
+            if (user is null) return;
 
-    private static string UnlockedKey() => $"{UnlockedPrefix}{UserKey()}";
+            user.UnlockedGamesJson = JsonSerializer.Serialize(unlocked.ToList());
+            await DatabaseService.Db.UpdateAsync(user);
+        });
+    }
 
     private static string UserKey()
-    {
-        var key = AccountStore.GetCurrentUsernameKey();
-        return string.IsNullOrWhiteSpace(key) ? "guest" : key;
-    }
+        => AccountStore.GetCurrentUsernameKey();
 }

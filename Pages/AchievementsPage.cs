@@ -9,6 +9,12 @@ public sealed class AchievementsPage : ContentPage
     {
         Title = "Достижения";
         BackgroundColor = ThemeColors.PageBg;
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        Content = null;
         BuildUi();
     }
 
@@ -29,7 +35,7 @@ public sealed class AchievementsPage : ContentPage
                 Children =
                 {
                     new Label { Text = "Твои достижения", FontSize = 14,
-                        TextColor = Color.FromArgb("#C7D2FE") },
+                        TextColor = ThemeColors.AccentLight },
                     new Label { Text = $"{unlocked} / {all.Count}",
                         FontSize = 32, FontAttributes = FontAttributes.Bold, TextColor = Colors.White }
                 }
