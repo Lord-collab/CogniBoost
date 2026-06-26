@@ -5,7 +5,7 @@ public static class SettingsService
     private const string ThemeKey = "cb_theme";
     private const string LargeTextKey = "cb_large_text";
     private const string SoundKey = "cb_sound";
-    public const string AppDownloadUrl = "https://github.com/Lord-collab/CogniBoost/releases/latest";
+    public const string AppDownloadUrl = "https://github.com/Lord-collab/CogniBoost/releases/latest/download/CogniBoost.apk";
     public const string AppVersion = "1.0.0";
 
     public static string Theme
