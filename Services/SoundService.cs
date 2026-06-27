@@ -7,12 +7,12 @@ public static class SoundService
     private static readonly byte[] CompleteWav = GenerateWav(784, 0.35);
     private static readonly byte[] TickWav = GenerateWav(440, 0.06);
 
-    public static void PlayCorrect() { if (SettingsService.SoundEnabled) PlayWav(CorrectWav); }
-    public static void PlayWrong() { if (SettingsService.SoundEnabled) PlayWav(WrongWav); }
-    public static void PlayComplete() { if (SettingsService.SoundEnabled) PlayWav(CompleteWav); }
-    public static void PlayTick() { if (SettingsService.SoundEnabled) PlayWav(TickWav); }
+    public static void PlayCorrect() { if (SettingsService.SoundEnabled) _ = PlayWavAsync(CorrectWav); }
+    public static void PlayWrong() { if (SettingsService.SoundEnabled) _ = PlayWavAsync(WrongWav); }
+    public static void PlayComplete() { if (SettingsService.SoundEnabled) _ = PlayWavAsync(CompleteWav); }
+    public static void PlayTick() { if (SettingsService.SoundEnabled) _ = PlayWavAsync(TickWav); }
 
-    private static async void PlayWav(byte[] data)
+    private static async Task PlayWavAsync(byte[] data)
     {
 #if ANDROID
         try

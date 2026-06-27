@@ -8,13 +8,13 @@ public static class GameTutorialService
 
     public static bool HasSeenTutorial(string gameId)
     {
-        var key = $"{SeenPrefix}{UserKey()}_{gameId}";
+        var key = $"{SeenPrefix}{AccountStore.GetCurrentUsernameKey()}_{gameId}";
         return Preferences.Default.Get(key, false);
     }
 
     public static void MarkTutorialSeen(string gameId)
     {
-        var key = $"{SeenPrefix}{UserKey()}_{gameId}";
+        var key = $"{SeenPrefix}{AccountStore.GetCurrentUsernameKey()}_{gameId}";
         Preferences.Default.Set(key, true);
     }
 
@@ -147,9 +147,4 @@ public static class GameTutorialService
         MarkTutorialSeen(gameId);
     }
 
-    private static string UserKey()
-    {
-        var k = AccountStore.GetCurrentUsernameKey();
-        return string.IsNullOrWhiteSpace(k) ? "guest" : k;
-    }
 }

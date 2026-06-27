@@ -52,7 +52,7 @@ public sealed class AvatarPickerPage : ContentPage
             var tap = new TapGestureRecognizer();
             tap.Tapped += async (_, _) =>
             {
-                AccountStore.SaveAvatar(emoji);
+                await AccountStore.SaveAvatarAsync(emoji);
                 await Navigation.PopAsync();
             };
             btn.GestureRecognizers.Add(tap);

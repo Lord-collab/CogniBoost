@@ -15,12 +15,12 @@ public partial class TestsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        Refresh();
+        _ = RefreshAsync();
     }
 
-    private void Refresh()
+    private async Task RefreshAsync()
     {
-        var history = ProgressStore.GetTestHistory();
+        var history = await ProgressStore.GetTestHistoryAsync();
         var bestIq = history.Count > 0 ? history.Max(t => t.IqScore) : 0;
 
         BestIqLabel.Text = bestIq > 0 ? bestIq.ToString() : "—";

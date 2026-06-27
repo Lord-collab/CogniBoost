@@ -25,12 +25,12 @@ public partial class RegisterPage : ContentPage
 
         if (AccountStore.IsGuest)
         {
-            AccountStore.MigrateGuestData(
+            await AccountStore.MigrateGuestDataAsync(
                 UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!);
         }
         else
         {
-            AccountStore.SaveAccount(UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!);
+            await AccountStore.SaveAccountAsync(UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!);
         }
 
         // Синхронизируем профиль с облаком (fire-and-forget)

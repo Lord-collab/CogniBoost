@@ -203,11 +203,11 @@ public sealed class TestSessionPage : ContentPage
             EarnedPoints: earned,
             PlayedAtUtc: DateTime.UtcNow);
 
-        ProgressStore.AddTestResult(result);
+        await ProgressStore.AddTestResultAsync(result);
 
         // Streak + достижения
-        StreakService.RecordActivity();
-        var newAchievements = AchievementsService.CheckAndUnlock();
+        await StreakService.RecordActivityAsync();
+        var newAchievements = await AchievementsService.CheckAndUnlockAsync();
 
         // Попап новых достижений
         if (newAchievements.Count > 0)

@@ -42,14 +42,6 @@ public static class DatabaseService
         }
     }
 
-    /// <summary>Безопасный синхронный вызов для сервисов (UI-поток).</summary>
-    public static void Sync(Func<Task> action)
-        => Task.Run(action).GetAwaiter().GetResult();
-
-    /// <summary>Безопасный синхронный вызов с возвратом значения.</summary>
-    public static T Sync<T>(Func<Task<T>> func)
-        => Task.Run(func).GetAwaiter().GetResult();
-
     // ---------------------------------------------------------------
     // Настройки (Settings table)
     // ---------------------------------------------------------------

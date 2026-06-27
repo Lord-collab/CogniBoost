@@ -19,7 +19,7 @@ public partial class GamesPage : ContentPage
     {
         base.OnAppearing();
         BuildCategories();
-        BuildCatalog();
+        _ = BuildCatalogAsync();
         SettingsService.ApplyTextScale(this);
     }
 
@@ -61,11 +61,11 @@ public partial class GamesPage : ContentPage
         };
 
         var tap = new TapGestureRecognizer();
-        tap.Tapped += (_, _) =>
+        tap.Tapped += async (_, _) =>
         {
             _activeCategory = skill;
             BuildCategories();
-            BuildCatalog();
+            await BuildCatalogAsync();
         };
         chip.GestureRecognizers.Add(tap);
 
@@ -75,10 +75,10 @@ public partial class GamesPage : ContentPage
     private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
     {
         _searchText = e.NewTextValue?.ToLower() ?? "";
-        BuildCatalog();
+        _ = BuildCatalogAsync();
     }
 
-    private void BuildCatalog()
+    private async Task BuildCatalogAsync()
     {
         GamesList.Children.Clear();
 
@@ -131,22 +131,22 @@ public partial class GamesPage : ContentPage
 
                 // Карточки игр
                 foreach (var game in skillGames)
-                    GamesList.Children.Add(BuildGameCard(game));
+                    GamesList.Children.Add(await BuildGameCardAsync(game));
             }
         }
         else
         {
             // Просто список
             foreach (var game in games)
-                GamesList.Children.Add(BuildGameCard(game));
+                GamesList.Children.Add(await BuildGameCardAsync(game));
         }
     }
 
-    private View BuildGameCard(GameDefinition game)
+    private async Task<View> BuildGameCardAsync(GameDefinition game)
     {
         var unlocked = UnlockService.IsUnlocked(game);
         var accent = BrainSkillInfo.Accent(game.Skill);
-        var best = ProgressStore.GetBestScore(game.Id);
+        var best = await ProgressStore.GetBestScoreAsync(game.Id);
 
         var isChallenge = DailyChallengeService.IsChallengeGame(game.Id);
 

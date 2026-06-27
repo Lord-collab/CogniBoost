@@ -39,13 +39,13 @@ public abstract class GameBasePage : ContentPage
             EarnedPoints: earned,
             PlayedAtUtc:  DateTime.UtcNow);
 
-        ProgressStore.AddGameResult(result);
+        await ProgressStore.AddGameResultAsync(result);
 
         // Streak
-        var (streak, streakBonus) = StreakService.RecordActivity();
+        var (streak, streakBonus) = await StreakService.RecordActivityAsync();
 
         // Достижения
-        var newAchievements = AchievementsService.CheckAndUnlock();
+        var newAchievements = await AchievementsService.CheckAndUnlockAsync();
 
         // Попап новых достижений
         if (newAchievements.Count > 0)

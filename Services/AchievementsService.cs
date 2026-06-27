@@ -41,101 +41,91 @@ public static class AchievementsService
         ("skill_logic_500",  "Логик",              "Доведи навык Логика до 500",            "\u2699\uFE0F"),
     };
 
-    public static IReadOnlyList<Achievement> GetAll()
+    public static async Task<IReadOnlyList<Achievement>> GetAllAsync()
     {
-        return DatabaseService.Sync(async () =>
-        {
-            var user = await DatabaseService.Db.FindAsync<UserEntity>(UserKey());
-            var achievements = LoadAchievements(user?.AchievementsJson);
+        var user = await DatabaseService.Db.FindAsync<UserEntity>(AccountStore.GetCurrentUsernameKey());
+        var achievements = LoadAchievements(user?.AchievementsJson);
 
-            return Definitions.Select(d =>
-            {
-                var hasTimestamp = achievements.TryGetValue(d.Id, out var timestamp);
-                DateTime? date = hasTimestamp && DateTime.TryParse(timestamp, out var dt) ? dt : null;
-                return new Achievement(d.Id, d.Title, d.Description, d.Emoji, hasTimestamp, date);
-            }).ToList();
-        });
+        return Definitions.Select(d =>
+        {
+            var hasTimestamp = achievements.TryGetValue(d.Id, out var timestamp);
+            DateTime? date = hasTimestamp && DateTime.TryParse(timestamp, out var dt) ? dt : null;
+            return new Achievement(d.Id, d.Title, d.Description, d.Emoji, hasTimestamp, date);
+        }).ToList();
     }
 
-    public static int UnlockedCount() => GetAll().Count(a => a.IsUnlocked);
+    public static async Task<int> UnlockedCountAsync() => (await GetAllAsync()).Count(a => a.IsUnlocked);
     public static int TotalCount() => Definitions.Length;
 
-    public static IReadOnlyList<Achievement> CheckAndUnlock()
+    public static async Task<IReadOnlyList<Achievement>> CheckAndUnlockAsync()
     {
         var newly = new List<Achievement>();
 
-        var history = ProgressStore.GetGameHistory();
-        var testHistory = ProgressStore.GetTestHistory();
+        var history = await ProgressStore.GetGameHistoryAsync();
+        var testHistory = await ProgressStore.GetTestHistoryAsync();
         var playedGames = history.Select(r => r.GameId)
             .Distinct(StringComparer.OrdinalIgnoreCase).Count();
-        var overall = ProgressStore.GetOverallScore();
-        var lifetime = PointsService.GetLifetimeEarned();
-        var streak = StreakService.GetCurrentStreak();
+        var overall = await ProgressStore.GetOverallScoreAsync();
+        var lifetime = await PointsService.GetLifetimeEarnedAsync();
+        var streak = await StreakService.GetCurrentStreakAsync();
         var unlockedGames = Pages.GameCatalog.All.Count(g => UnlockService.IsUnlocked(g));
         var lockedCount = Pages.GameCatalog.All.Count(g => !g.Starter);
 
-        TryUnlock("first_game", history.Count >= 1, newly);
-        TryUnlock("games_5", playedGames >= 5, newly);
-        TryUnlock("games_10", playedGames >= 10, newly);
-        TryUnlock("perfect_score", history.Any(r => r.AccuracyPercent >= 100), newly);
+        await TryUnlockAsync("first_game", history.Count >= 1, newly);
+        await TryUnlockAsync("games_5", playedGames >= 5, newly);
+        await TryUnlockAsync("games_10", playedGames >= 10, newly);
+        await TryUnlockAsync("perfect_score", history.Any(r => r.AccuracyPercent >= 100), newly);
 
         var last3 = history.Take(3).ToList();
-        TryUnlock("accuracy_90", last3.Count == 3 && last3.All(r => r.AccuracyPercent >= 90), newly);
+        await TryUnlockAsync("accuracy_90", last3.Count == 3 && last3.All(r => r.AccuracyPercent >= 90), newly);
 
-        TryUnlock("unlock_game", Pages.GameCatalog.All.Any(g => !g.Starter && UnlockService.IsUnlocked(g)), newly);
-        TryUnlock("unlock_all", lockedCount > 0 && Pages.GameCatalog.All.Where(g => !g.Starter).All(g => UnlockService.IsUnlocked(g)), newly);
+        await TryUnlockAsync("unlock_game", Pages.GameCatalog.All.Any(g => !g.Starter && UnlockService.IsUnlocked(g)), newly);
+        await TryUnlockAsync("unlock_all", lockedCount > 0 && Pages.GameCatalog.All.Where(g => !g.Starter).All(g => UnlockService.IsUnlocked(g)), newly);
 
-        TryUnlock("first_test", testHistory.Count >= 1, newly);
-        TryUnlock("iq_100", testHistory.Any(t => t.IqScore >= 100), newly);
-        TryUnlock("iq_120", testHistory.Any(t => t.IqScore >= 120), newly);
-        TryUnlock("iq_130", testHistory.Any(t => t.IqScore >= 130), newly);
-        TryUnlock("tests_5", testHistory.Count >= 5, newly);
+        await TryUnlockAsync("first_test", testHistory.Count >= 1, newly);
+        await TryUnlockAsync("iq_100", testHistory.Any(t => t.IqScore >= 100), newly);
+        await TryUnlockAsync("iq_120", testHistory.Any(t => t.IqScore >= 120), newly);
+        await TryUnlockAsync("iq_130", testHistory.Any(t => t.IqScore >= 130), newly);
+        await TryUnlockAsync("tests_5", testHistory.Count >= 5, newly);
 
-        TryUnlock("brain_200", overall >= 200, newly);
-        TryUnlock("brain_500", overall >= 500, newly);
-        TryUnlock("brain_800", overall >= 800, newly);
-        TryUnlock("points_500", lifetime >= 500, newly);
-        TryUnlock("points_1000", lifetime >= 1000, newly);
+        await TryUnlockAsync("brain_200", overall >= 200, newly);
+        await TryUnlockAsync("brain_500", overall >= 500, newly);
+        await TryUnlockAsync("brain_800", overall >= 800, newly);
+        await TryUnlockAsync("points_500", lifetime >= 500, newly);
+        await TryUnlockAsync("points_1000", lifetime >= 1000, newly);
 
-        TryUnlock("streak_3", streak >= 3, newly);
-        TryUnlock("streak_7", streak >= 7, newly);
-        TryUnlock("streak_30", streak >= 30, newly);
+        await TryUnlockAsync("streak_3", streak >= 3, newly);
+        await TryUnlockAsync("streak_7", streak >= 7, newly);
+        await TryUnlockAsync("streak_30", streak >= 30, newly);
 
-        TryUnlock("skill_memory_500", ProgressStore.GetSkillScore(BrainSkill.Memory) >= 500, newly);
-        TryUnlock("skill_focus_500", ProgressStore.GetSkillScore(BrainSkill.Focus) >= 500, newly);
-        TryUnlock("skill_lang_500", ProgressStore.GetSkillScore(BrainSkill.Language) >= 500, newly);
-        TryUnlock("skill_logic_500", ProgressStore.GetSkillScore(BrainSkill.Logic) >= 500, newly);
+        await TryUnlockAsync("skill_memory_500", await ProgressStore.GetSkillScoreAsync(BrainSkill.Memory) >= 500, newly);
+        await TryUnlockAsync("skill_focus_500", await ProgressStore.GetSkillScoreAsync(BrainSkill.Focus) >= 500, newly);
+        await TryUnlockAsync("skill_lang_500", await ProgressStore.GetSkillScoreAsync(BrainSkill.Language) >= 500, newly);
+        await TryUnlockAsync("skill_logic_500", await ProgressStore.GetSkillScoreAsync(BrainSkill.Logic) >= 500, newly);
 
         return newly;
     }
 
-    private static void TryUnlock(string id, bool condition, List<Achievement> newly)
+    private static async Task TryUnlockAsync(string id, bool condition, List<Achievement> newly)
     {
         if (!condition) return;
 
-        var isNew = DatabaseService.Sync(async () =>
-        {
-            var user = await DatabaseService.Db.FindAsync<UserEntity>(UserKey());
-            var dict = LoadAchievements(user?.AchievementsJson);
-            if (dict.ContainsKey(id))
-                return false;
+        var user = await DatabaseService.Db.FindAsync<UserEntity>(AccountStore.GetCurrentUsernameKey());
+        var dict = LoadAchievements(user?.AchievementsJson);
+        if (dict.ContainsKey(id))
+            return;
 
-            dict[id] = DateTime.UtcNow.ToString("O");
-            if (user is not null)
-            {
-                user.AchievementsJson = JsonSerializer.Serialize(dict);
-                await DatabaseService.Db.UpdateAsync(user);
-            }
-            return true;
-        });
-
-        if (isNew)
+        dict[id] = DateTime.UtcNow.ToString("O");
+        if (user is not null)
         {
-            var def = Definitions.FirstOrDefault(d => d.Id == id);
-            if (def != default)
-                newly.Add(new Achievement(def.Id, def.Title, def.Description,
-                    def.Emoji, true, DateTime.UtcNow));
+            user.AchievementsJson = JsonSerializer.Serialize(dict);
+            await DatabaseService.Db.UpdateAsync(user);
         }
+
+        var def = Definitions.FirstOrDefault(d => d.Id == id);
+        if (def != default)
+            newly.Add(new Achievement(def.Id, def.Title, def.Description,
+                def.Emoji, true, DateTime.UtcNow));
     }
 
     private static Dictionary<string, string> LoadAchievements(string? json)
@@ -152,11 +142,5 @@ public static class AchievementsService
         {
             return new Dictionary<string, string>();
         }
-    }
-
-    private static string UserKey()
-    {
-        var k = AccountStore.GetCurrentUsernameKey();
-        return string.IsNullOrWhiteSpace(k) ? "guest" : k;
     }
 }

@@ -15,13 +15,13 @@ public partial class TrainingPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        Refresh();
+        _ = RefreshAsync();
         SettingsService.ApplyTextScale(this);
     }
 
-    private void Refresh()
+    private async Task RefreshAsync()
     {
-        AccountStore.TryGetCurrentProfile(out var profile);
+        var profile = await AccountStore.GetProfileAsync();
 
         // Аватар и приветствие
         AvatarLabel.Text = profile?.AvatarEmoji ?? "🧠";
@@ -32,12 +32,12 @@ public partial class TrainingPage : ContentPage
         SubGreetingLabel.Text = $"Готов прокачать мозг?";
 
         // Статистика
-        BrainScoreLabel.Text = ProgressStore.GetOverallScore().ToString();
-        GamesPlayedLabel.Text = ProgressStore.GetGamesPlayedCount().ToString();
-        PointsLabel.Text = $"{PointsService.GetBalance()} ⭐";
+        BrainScoreLabel.Text = (await ProgressStore.GetOverallScoreAsync()).ToString();
+        GamesPlayedLabel.Text = (await ProgressStore.GetGamesPlayedCountAsync()).ToString();
+        PointsLabel.Text = $"{await PointsService.GetBalanceAsync()} ⭐";
 
         // Streak
-        var streak = StreakService.GetCurrentStreak();
+        var streak = await StreakService.GetCurrentStreakAsync();
         StreakLabel.Text = streak == 0 ? "Начни сегодня" : $"{streak} {DayWord(streak)}";
         var streakBonus = streak >= 3 ? 10 * (streak / 3) : 0;
         StreakBonusLabel.Text = streakBonus > 0 ? $"+{streakBonus} ⭐/день" : "";
@@ -49,7 +49,7 @@ public partial class TrainingPage : ContentPage
         BuildChallenge();
 
         // Ежедневные игры
-        BuildDaily(profile);
+        await BuildDailyAsync(profile);
     }
 
     private static string DayWord(int n) => n switch
@@ -78,7 +78,7 @@ public partial class TrainingPage : ContentPage
         }
     }
 
-    private void BuildDaily(UserProfile? profile)
+    private async Task BuildDailyAsync(UserProfile? profile)
     {
         DailyLayout.Children.Clear();
 
@@ -104,13 +104,13 @@ public partial class TrainingPage : ContentPage
         }
 
         foreach (var game in daily)
-            DailyLayout.Children.Add(BuildDailyCard(game));
+            DailyLayout.Children.Add(await BuildDailyCardAsync(game));
     }
 
-    private View BuildDailyCard(GameDefinition game)
+    private async Task<View> BuildDailyCardAsync(GameDefinition game)
     {
         var accent = BrainSkillInfo.Accent(game.Skill);
-        var best = ProgressStore.GetBestScore(game.Id);
+        var best = await ProgressStore.GetBestScoreAsync(game.Id);
 
         var emoji = new Label
         {
@@ -198,7 +198,7 @@ public partial class TrainingPage : ContentPage
 
     private async void OnQuickGameClicked(object? sender, EventArgs e)
     {
-        AccountStore.TryGetCurrentProfile(out var profile);
+        var profile = await AccountStore.GetProfileAsync();
         var selectedSkills = profile?.SelectedSkills ?? new List<BrainSkill>();
 
         IEnumerable<GameDefinition> pool = GameCatalog.All.Where(UnlockService.IsUnlocked);

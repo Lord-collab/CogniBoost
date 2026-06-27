@@ -15,12 +15,12 @@ public sealed class AchievementsPage : ContentPage
     {
         base.OnAppearing();
         Content = null;
-        BuildUi();
+        _ = BuildUiAsync();
     }
 
-    private void BuildUi()
+    private async Task BuildUiAsync()
     {
-        var all      = AchievementsService.GetAll();
+        var all      = await AchievementsService.GetAllAsync();
         var unlocked = all.Count(a => a.IsUnlocked);
 
         var header = new Border

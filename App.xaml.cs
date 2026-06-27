@@ -43,12 +43,12 @@ public partial class App : Application
         _ = Task.Run(async () =>
         {
             await DatabaseService.InitAsync();
-            MainThread.BeginInvokeOnMainThread(() =>
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
                 try
                 {
                     SettingsService.ApplyTheme();
-                    window.Page = BuildRootPage();
+                    window.Page = await BuildRootPageAsync();
                 }
                 catch (Exception ex)
                 {
@@ -87,7 +87,7 @@ public partial class App : Application
         }
     }
 
-    public static Page BuildRootPage()
+    public static async Task<Page> BuildRootPageAsync()
     {
         if (AccountStore.IsGuest)
             return new AppShell();
@@ -95,15 +95,15 @@ public partial class App : Application
         if (!AccountStore.IsSignedIn)
             return new NavigationPage(new WelcomePage());
 
-        if (!AccountStore.IsCurrentUserOnboarded)
+        if (!await AccountStore.IsCurrentUserOnboardedAsync())
             return new NavigationPage(new OnboardingPage());
 
         return new AppShell();
     }
 
-    public static void ResetRootPage()
+    public static async void ResetRootPage()
     {
         if (Current?.Windows.Count > 0)
-            Current.Windows[0].Page = BuildRootPage();
+            Current.Windows[0].Page = await BuildRootPageAsync();
     }
 }

@@ -38,7 +38,7 @@ public static class NotificationService
     {
         if (!IsEnabled) return;
 
-        var streak = StreakService.GetCurrentStreak();
+        var streak = await StreakService.GetCurrentStreakAsync();
         var body   = streak >= 3
             ? $"Серия {streak} дней! Не прерывай — сыграй хотя бы одну игру 🔥"
             : "Пора прокачать мозг! Ежедневная тренировка ждёт тебя 🧠";

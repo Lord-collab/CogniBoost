@@ -14,23 +14,24 @@ public partial class ProfilePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        LoadProfile();
+        _ = LoadProfileAsync();
     }
 
-    private void LoadProfile()
+    private async Task LoadProfileAsync()
     {
-        if (!AccountStore.TryGetCurrentProfile(out var profile)) return;
+        var profile = await AccountStore.GetProfileAsync();
+        if (profile is null) return;
 
         AvatarLabel.Text   = profile.AvatarEmoji;
         UsernameLabel.Text = profile.Username;
         AgeLabel.Text      = profile.Age > 0 ? $"{profile.Age} лет" : string.Empty;
 
-        var streak = StreakService.GetCurrentStreak();
+        var streak = await StreakService.GetCurrentStreakAsync();
         StreakLabel.Text  = streak > 0 ? $"🔥 {streak} дн." : string.Empty;
-        BalanceLabel.Text = PointsService.GetBalance().ToString();
-        LifetimeLabel.Text = PointsService.GetLifetimeEarned().ToString();
+        BalanceLabel.Text = (await PointsService.GetBalanceAsync()).ToString();
+        LifetimeLabel.Text = (await PointsService.GetLifetimeEarnedAsync()).ToString();
 
-        var unlocked = AchievementsService.UnlockedCount();
+        var unlocked = await AchievementsService.UnlockedCountAsync();
         var total    = AchievementsService.TotalCount();
         AchievementsCountLabel.Text = $"{unlocked} / {total}";
 
@@ -74,7 +75,6 @@ public partial class ProfilePage : ContentPage
                 TextColor = ThemeColors.TextMuted
             });
         }
-
     }
 
     private async void OnChangeAvatarClicked(object? sender, EventArgs e)

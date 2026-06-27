@@ -19,9 +19,9 @@ public partial class WelcomePage : ContentPage
         await Navigation.PushAsync(new LoginPage());
     }
 
-    private void OnGuestClicked(object? sender, EventArgs e)
+    private async void OnGuestClicked(object? sender, EventArgs e)
     {
-        AccountStore.EnterGuestMode();
+        await AccountStore.EnterGuestModeAsync();
         App.ResetRootPage();
     }
 }

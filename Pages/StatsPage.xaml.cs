@@ -18,15 +18,15 @@ public partial class StatsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        Refresh();
+        _ = RefreshAsync();
     }
 
-    private void Refresh()
+    private async Task RefreshAsync()
     {
-        var overall = ProgressStore.GetOverallScore();
+        var overall = await ProgressStore.GetOverallScoreAsync();
         OverallLabel.Text = overall.ToString();
-        GamesPlayedLabel.Text = ProgressStore.GetGamesPlayedCount().ToString();
-        PointsLabel.Text = PointsService.GetBalance().ToString();
+        GamesPlayedLabel.Text = (await ProgressStore.GetGamesPlayedCountAsync()).ToString();
+        PointsLabel.Text = (await PointsService.GetBalanceAsync()).ToString();
         RankLabel.Text = GetRank(overall);
 
         BuildRing(overall);
@@ -61,9 +61,9 @@ public partial class StatsPage : ContentPage
     }
 
     // ── График ───────────────────────────────────────────────────────
-    private void BuildChart()
+    private async void BuildChart()
     {
-        var history = ProgressStore.GetGameHistory()
+        var history = (await ProgressStore.GetGameHistoryAsync())
             .Take(14)
             .Reverse()
             .Select(r => (double)r.AccuracyPercent)
@@ -80,22 +80,22 @@ public partial class StatsPage : ContentPage
     }
 
     // ── Навыки ───────────────────────────────────────────────────────
-    private void BuildSkills()
+    private async void BuildSkills()
     {
         SkillsLayout.Children.Clear();
 
         foreach (var meta in BrainSkillInfo.All)
         {
-            var score = ProgressStore.GetSkillScore(meta.Skill);
+            var score = await ProgressStore.GetSkillScoreAsync(meta.Skill);
             var accent = ThemeColors.SkillColor(meta.Skill);
             var lightBg = ThemeColors.SkillColorLight(meta.Skill);
             var fraction = Math.Clamp(score / 1000.0, 0, 1);
 
-            var recent = ProgressStore.GetGameHistory()
+            var recent = (await ProgressStore.GetGameHistoryAsync())
                 .Where(r => r.Skill == meta.Skill && r.PlayedAtUtc >= DateTime.UtcNow.AddDays(-7))
                 .Select(r => r.AccuracyPercent)
                 .DefaultIfEmpty(0).Average();
-            var all = ProgressStore.GetGameHistory()
+            var all = (await ProgressStore.GetGameHistoryAsync())
                 .Where(r => r.Skill == meta.Skill)
                 .Select(r => r.AccuracyPercent)
                 .DefaultIfEmpty(0).Average();
@@ -175,7 +175,7 @@ public partial class StatsPage : ContentPage
     }
 
     // ── История ──────────────────────────────────────────────────────
-    private void BuildHistory()
+    private async void BuildHistory()
     {
         HistoryLayout.Children.Clear();
 
@@ -190,14 +190,14 @@ public partial class StatsPage : ContentPage
         TabTestsBtn.BorderColor = _showGames ? ThemeColors.Border : Colors.Transparent;
 
         if (_showGames)
-            BuildGameHistory();
+            await BuildGameHistoryAsync();
         else
-            BuildTestHistory();
+            await BuildTestHistoryAsync();
     }
 
-    private void BuildGameHistory()
+    private async Task BuildGameHistoryAsync()
     {
-        var games = ProgressStore.GetGameHistory().Take(10).ToList();
+        var games = (await ProgressStore.GetGameHistoryAsync()).Take(10).ToList();
         if (games.Count == 0)
         {
             HistoryLayout.Children.Add(new EmptyState("🎮",
@@ -216,9 +216,9 @@ public partial class StatsPage : ContentPage
         }
     }
 
-    private void BuildTestHistory()
+    private async Task BuildTestHistoryAsync()
     {
-        var tests = ProgressStore.GetTestHistory().Take(10).ToList();
+        var tests = (await ProgressStore.GetTestHistoryAsync()).Take(10).ToList();
         if (tests.Count == 0)
         {
             HistoryLayout.Children.Add(new EmptyState("📝",

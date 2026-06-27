@@ -32,14 +32,10 @@ public sealed class SettingsPage : ContentPage
 
     private void BuildUi()
     {
-        AccountStore.TryGetCurrentProfile(out var profile);
-
-        _nameEntry.Text = profile?.Username ?? string.Empty;
         _nameEntry.Placeholder = "Отображаемое имя";
         _nameEntry.BackgroundColor = ThemeColors.CardBg;
         _nameEntry.TextColor = ThemeColors.TextPrimary;
 
-        _ageEntry.Text = profile?.Age > 0 ? profile.Age.ToString() : string.Empty;
         _ageEntry.Placeholder = "Возраст";
         _ageEntry.BackgroundColor = ThemeColors.CardBg;
         _ageEntry.TextColor = ThemeColors.TextPrimary;
@@ -71,12 +67,12 @@ public sealed class SettingsPage : ContentPage
         _themePicker.SelectedIndex = Math.Max(0, Array.FindIndex(Themes, t => t.Value == SettingsService.Theme));
         _themePicker.BackgroundColor = ThemeColors.CardBg;
         _themePicker.TextColor = ThemeColors.TextPrimary;
-        _themePicker.SelectedIndexChanged += (_, _) =>
+        _themePicker.SelectedIndexChanged += async (_, _) =>
         {
             var idx = _themePicker.SelectedIndex;
             if (idx >= 0 && idx < Themes.Length)
             {
-                SettingsService.Theme = Themes[idx].Value;
+                await SettingsService.SetThemeAsync(Themes[idx].Value);
                 SettingsService.ApplyTheme();
             }
         };
@@ -93,9 +89,9 @@ public sealed class SettingsPage : ContentPage
         // ── Доступность ───────────────────────────────────────────────
         _largeTextSwitch.IsToggled = SettingsService.LargeText;
         _largeTextSwitch.OnColor = ThemeColors.Accent;
-        _largeTextSwitch.Toggled += (_, e) =>
+        _largeTextSwitch.Toggled += async (_, e) =>
         {
-            SettingsService.LargeText = e.Value;
+            await SettingsService.SetLargeTextAsync(e.Value);
             SettingsService.ApplyAll();
         };
 
@@ -111,7 +107,7 @@ public sealed class SettingsPage : ContentPage
             IsToggled = SettingsService.SoundEnabled,
             OnColor = ThemeColors.Accent
         };
-        soundSwitch.Toggled += (_, e) => SettingsService.SoundEnabled = e.Value;
+        soundSwitch.Toggled += async (_, e) => await SettingsService.SetSoundEnabledAsync(e.Value);
 
         var soundSection = BuildSection("Звук", new VerticalStackLayout
         {
@@ -235,12 +231,14 @@ public sealed class SettingsPage : ContentPage
 
         if (!string.IsNullOrWhiteSpace(_nameEntry.Text))
         {
-            if (!AccountStore.TryUpdateDisplayName(_nameEntry.Text, out var err)) errors.Add(err);
+            var (success, err) = await AccountStore.TryUpdateDisplayNameAsync(_nameEntry.Text);
+            if (!success) errors.Add(err);
         }
 
         if (!string.IsNullOrWhiteSpace(_ageEntry.Text))
         {
-            if (!AccountStore.TryUpdateAge(_ageEntry.Text, out var err)) errors.Add(err);
+            var (success, err) = await AccountStore.TryUpdateAgeAsync(_ageEntry.Text);
+            if (!success) errors.Add(err);
         }
 
         if (errors.Count > 0)
@@ -252,17 +250,17 @@ public sealed class SettingsPage : ContentPage
         await DisplayAlertAsync("Готово", "Данные профиля обновлены.", "OK");
     }
 
-    private void OnChangeDirections(object? sender, EventArgs e)
+    private async void OnChangeDirections(object? sender, EventArgs e)
     {
-        AccountStore.ResetOnboarding();
+        await AccountStore.ResetOnboardingAsync();
         App.ResetRootPage();
     }
 
     private async Task ShareApp()
     {
-        var best = ProgressStore.GetOverallScore();
-        var text = best > 0
-            ? $"Тренирую мозг в CogniBoost! Мой индекс мозга: {best} 🧠\nСкачать: {SettingsService.AppDownloadUrl}"
+        var overall = await ProgressStore.GetOverallScoreAsync();
+        var text = overall > 0
+            ? $"Тренирую мозг в CogniBoost! Мой индекс мозга: {overall} 🧠\nСкачать: {SettingsService.AppDownloadUrl}"
             : $"Тренируй память, внимание и логику каждый день!\nCogniBoost: {SettingsService.AppDownloadUrl}";
 
         await Share.Default.RequestAsync(new ShareTextRequest
@@ -275,14 +273,14 @@ public sealed class SettingsPage : ContentPage
 
     private async Task ExportStats()
     {
-        var overall = ProgressStore.GetOverallScore();
-        var games = ProgressStore.GetGamesPlayedCount();
-        var bestIq = ProgressStore.GetBestIq();
-        var streak = StreakService.GetCurrentStreak();
-        var longest = StreakService.GetLongestStreak();
-        var balance = PointsService.GetBalance();
-        var lifetime = PointsService.GetLifetimeEarned();
-        var ach = AchievementsService.UnlockedCount();
+        var overall = await ProgressStore.GetOverallScoreAsync();
+        var games = await ProgressStore.GetGamesPlayedCountAsync();
+        var bestIq = await ProgressStore.GetBestIqAsync();
+        var streak = await StreakService.GetCurrentStreakAsync();
+        var longest = await StreakService.GetLongestStreakAsync();
+        var balance = await PointsService.GetBalanceAsync();
+        var lifetime = await PointsService.GetLifetimeEarnedAsync();
+        var ach = await AchievementsService.UnlockedCountAsync();
         var total = AchievementsService.TotalCount();
 
         var sb = new System.Text.StringBuilder();
@@ -301,7 +299,7 @@ public sealed class SettingsPage : ContentPage
 
         foreach (var meta in BrainSkillInfo.All)
         {
-            var score = ProgressStore.GetSkillScore(meta.Skill);
+            var score = await ProgressStore.GetSkillScoreAsync(meta.Skill);
             sb.AppendLine($"{meta.Emoji} {meta.Title}: {score}/1000");
         }
 
@@ -326,7 +324,7 @@ public sealed class SettingsPage : ContentPage
             "Удалить всё", "Отмена");
         if (!second) return;
 
-        AccountStore.ResetProgress();
+        await AccountStore.ResetProgressAsync();
         await DisplayAlertAsync("Готово", "Прогресс сброшен.", "OK");
     }
 

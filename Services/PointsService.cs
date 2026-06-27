@@ -8,22 +8,16 @@ public static class PointsService
     private const int MaxScaledPoints = 40;
     private const int NearPerfectBonus = 15;
 
-    public static int GetBalance()
+    public static async Task<int> GetBalanceAsync()
     {
-        return DatabaseService.Sync(async () =>
-        {
-            var user = await DatabaseService.Db.FindAsync<UserEntity>(UserKey());
-            return user?.PointsBalance ?? 0;
-        });
+        var user = await DatabaseService.Db.FindAsync<UserEntity>(AccountStore.GetCurrentUsernameKey());
+        return user?.PointsBalance ?? 0;
     }
 
-    public static int GetLifetimeEarned()
+    public static async Task<int> GetLifetimeEarnedAsync()
     {
-        return DatabaseService.Sync(async () =>
-        {
-            var user = await DatabaseService.Db.FindAsync<UserEntity>(UserKey());
-            return user?.PointsLifetime ?? 0;
-        });
+        var user = await DatabaseService.Db.FindAsync<UserEntity>(AccountStore.GetCurrentUsernameKey());
+        return user?.PointsLifetime ?? 0;
     }
 
     public static int AwardForResult(double accuracy)
@@ -33,54 +27,39 @@ public static class PointsService
         if (normalized >= 0.9)
             earned += NearPerfectBonus;
 
-        AddPoints(earned);
+        _ = UpdatePointsAsync(earned);
         return earned;
     }
 
     public static void AddPoints(int amount)
     {
         if (amount <= 0) return;
-        UpdatePoints(amount);
+        _ = UpdatePointsAsync(amount);
     }
 
-    public static bool TrySpend(int amount, out string message)
+    public static async Task<(bool Success, string Message)> TrySpendAsync(int amount)
     {
         if (amount <= 0)
-        {
-            message = "Некорректная стоимость.";
-            return false;
-        }
+            return (false, "Некорректная стоимость.");
 
-        var result = DatabaseService.Sync(async () =>
-        {
-            var user = await DatabaseService.Db.FindAsync<UserEntity>(UserKey());
-            var balance = user?.PointsBalance ?? 0;
+        var user = await DatabaseService.Db.FindAsync<UserEntity>(AccountStore.GetCurrentUsernameKey());
+        var balance = user?.PointsBalance ?? 0;
 
-            if (balance < amount)
-                return (Success: false, Message: $"Нужно {amount} очков. На балансе: {balance}.");
+        if (balance < amount)
+            return (false, $"Нужно {amount} очков. На балансе: {balance}.");
 
-            user!.PointsBalance = balance - amount;
-            await DatabaseService.Db.UpdateAsync(user);
-            return (Success: true, Message: $"Списано {amount} очков.");
-        });
-
-        message = result.Message;
-        return result.Success;
+        user!.PointsBalance = balance - amount;
+        await DatabaseService.Db.UpdateAsync(user);
+        return (true, $"Списано {amount} очков.");
     }
 
-    private static void UpdatePoints(int amount)
+    private static async Task UpdatePointsAsync(int amount)
     {
-        DatabaseService.Sync(async () =>
-        {
-            var user = await DatabaseService.Db.FindAsync<UserEntity>(UserKey());
-            if (user is null) return;
+        var user = await DatabaseService.Db.FindAsync<UserEntity>(AccountStore.GetCurrentUsernameKey());
+        if (user is null) return;
 
-            user.PointsBalance += amount;
-            user.PointsLifetime += amount;
-            await DatabaseService.Db.UpdateAsync(user);
-        });
+        user.PointsBalance += amount;
+        user.PointsLifetime += amount;
+        await DatabaseService.Db.UpdateAsync(user);
     }
-
-    private static string UserKey()
-        => AccountStore.GetCurrentUsernameKey();
 }

@@ -11,6 +11,7 @@ public sealed class UserEntity
     public int Age { get; set; }
     public string AvatarEmoji { get; set; } = "\U0001F9E0";
     public string PasswordHash { get; set; } = string.Empty;
+    public string? PasswordSalt { get; set; }
     public string? SkillsJson { get; set; }
     public bool Onboarded { get; set; }
     public int PointsBalance { get; set; }

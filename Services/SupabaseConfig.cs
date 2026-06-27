@@ -14,11 +14,23 @@ namespace CogniBoost.Services;
 /// </summary>
 public static class SupabaseConfig
 {
-    public const string ProjectUrl = "https://lpkyisjajsfpkbkqpnor.supabase.co";
-    public const string AnonKey = "sb_publishable_LhrcF7asVwIJcuWYVVl2xg_ZAfsgAQm";
+    private const string UrlKey = "supabase_project_url";
+    private const string AnonKeyPref = "supabase_anon_key";
+
+    private const string DefaultProjectUrl = "https://lpkyisjajsfpkbkqpnor.supabase.co";
+    private const string DefaultAnonKey = "sb_publishable_LhrcF7asVwIJcuWYVVl2xg_ZAfsgAQm";
+
+    public static string ProjectUrl => LoadFromSecure(UrlKey) ?? DefaultProjectUrl;
+    public static string AnonKey => LoadFromSecure(AnonKeyPref) ?? DefaultAnonKey;
 
     public static bool IsConfigured =>
         !string.IsNullOrWhiteSpace(ProjectUrl) && !string.IsNullOrWhiteSpace(AnonKey);
+
+    private static string? LoadFromSecure(string key)
+    {
+        try { return SecureStorage.Default.GetAsync(key).GetAwaiter().GetResult(); }
+        catch { return null; }
+    }
 }
 
 /// <summary>

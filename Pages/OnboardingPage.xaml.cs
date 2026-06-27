@@ -33,10 +33,10 @@ public partial class OnboardingPage : ContentPage
         ContinueButton.IsEnabled = _choices.Any(c => c.IsSelected);
     }
 
-    private void OnContinueClicked(object? sender, EventArgs e)
+    private async void OnContinueClicked(object? sender, EventArgs e)
     {
         var selected = _choices.Where(c => c.IsSelected).Select(c => c.Skill);
-        AccountStore.SaveSelectedSkills(selected);
+        await AccountStore.SaveSelectedSkillsAsync(selected);
         App.ResetRootPage();
     }
 

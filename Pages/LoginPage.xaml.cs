@@ -14,7 +14,8 @@ public partial class LoginPage : ContentPage
         var username = UsernameEntry.Text ?? string.Empty;
         var password = PasswordEntry.Text ?? string.Empty;
 
-        if (!AccountStore.TrySignIn(username, password, out var error))
+        var (success, error) = await AccountStore.TrySignInAsync(username, password);
+        if (!success)
         {
             // Если пользователь не найден локально — пробуем облако
             if (error == "Пользователь не найден." && SupabaseConfig.IsConfigured)

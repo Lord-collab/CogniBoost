@@ -55,21 +55,21 @@ public sealed class ChangePasswordPage : ContentPage
         };
     }
 
-    private void OnSave(object? sender, EventArgs e)
+    private async void OnSave(object? sender, EventArgs e)
     {
-        if (!AccountStore.TryChangePassword(
+        var (success, error) = await AccountStore.TryChangePasswordAsync(
                 _oldEntry.Text ?? string.Empty,
                 _newEntry.Text ?? string.Empty,
-                _confEntry.Text ?? string.Empty,
-                out var error))
+                _confEntry.Text ?? string.Empty);
+        if (!success)
         {
             _errorLabel.Text      = error;
             _errorLabel.IsVisible = true;
             return;
         }
 
-        _ = DisplayAlertAsync("Готово", "Пароль успешно изменён.", "OK")
-            .ContinueWith(_ => MainThread.BeginInvokeOnMainThread(() => Navigation.PopAsync()));
+        await DisplayAlertAsync("Готово", "Пароль успешно изменён.", "OK");
+        await Navigation.PopAsync();
     }
 
     private static Border BuildCard(View content)

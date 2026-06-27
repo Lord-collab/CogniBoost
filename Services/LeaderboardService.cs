@@ -85,7 +85,7 @@ public static class LeaderboardService
         }
 
         if (!SupabaseConfig.IsConfigured)
-            return BuildFallback("Облако не настроено. Показан локальный рейтинг.");
+            return await BuildFallbackAsync("Облако не настроено. Показан локальный рейтинг.");
 
         try
         {
@@ -101,7 +101,7 @@ public static class LeaderboardService
             {
                 var err = await resp.Content.ReadAsStringAsync();
                 System.Diagnostics.Debug.WriteLine($"[Leaderboard] HTTP {resp.StatusCode}: {err}");
-                return BuildFallback(
+                return await BuildFallbackAsync(
                     $"Не удалось загрузить рейтинг ({resp.StatusCode}): {err}");
             }
 
@@ -111,7 +111,7 @@ public static class LeaderboardService
                        ?? new List<LeaderboardRow>();
 
             if (rows.Count == 0)
-                return BuildFallback("В облаке пока нет данных. Сыграй несколько игр.");
+                return await BuildFallbackAsync("В облаке пока нет данных. Сыграй несколько игр.");
 
             var currentKey = AccountStore.GetCurrentUsernameKey();
             var entries = rows
@@ -134,15 +134,15 @@ public static class LeaderboardService
             if (!string.IsNullOrWhiteSpace(currentKey) &&
                 !entries.Any(e => e.IsCurrentPlayer))
             {
-                var myScore = ProgressStore.GetOverallScore();
+                var myScore = await ProgressStore.GetOverallScoreAsync();
                 if (myScore > 0)
                 {
                     entries.Add(new LeaderboardEntry(
                         entries.Count + 1,
-                        GetCurrentPlayerName(),
+                        await GetCurrentPlayerNameAsync(),
                         myScore,
                         true,
-                        GetCurrentPlayerAvatar()));
+                        await GetCurrentPlayerAvatarAsync()));
                 }
             }
 
@@ -151,7 +151,7 @@ public static class LeaderboardService
         }
         catch (Exception ex)
         {
-            return BuildFallback($"Нет соединения с облаком. {ex.Message}");
+            return await BuildFallbackAsync($"Нет соединения с облаком. {ex.Message}");
         }
     }
 
@@ -159,11 +159,11 @@ public static class LeaderboardService
     // Локальный фолбэк
     // ----------------------------------------------------------------
 
-    private static LeaderboardResult BuildFallback(string message)
+    private static async Task<LeaderboardResult> BuildFallbackAsync(string message)
     {
-        var playerScore = ProgressStore.GetOverallScore();
-        var playerName  = GetCurrentPlayerName();
-        var playerEmoji = GetCurrentPlayerAvatar();
+        var playerScore = await ProgressStore.GetOverallScoreAsync();
+        var playerName  = await GetCurrentPlayerNameAsync();
+        var playerEmoji = await GetCurrentPlayerAvatarAsync();
 
         var seed = HashCode.Combine(playerName, playerScore);
         var rng  = new Random(seed);
@@ -192,18 +192,18 @@ public static class LeaderboardService
         return new LeaderboardResult(ranked, false, message);
     }
 
-    private static string GetCurrentPlayerName()
+    private static async Task<string> GetCurrentPlayerNameAsync()
     {
-        if (AccountStore.TryGetCurrentProfile(out var p) &&
-            !string.IsNullOrWhiteSpace(p.Username))
+        var p = await AccountStore.GetProfileAsync();
+        if (p is not null && !string.IsNullOrWhiteSpace(p.Username))
             return p.Username;
         return "Вы";
     }
 
-    private static string GetCurrentPlayerAvatar()
+    private static async Task<string> GetCurrentPlayerAvatarAsync()
     {
-        if (AccountStore.TryGetCurrentProfile(out var p) &&
-            !string.IsNullOrWhiteSpace(p.AvatarEmoji))
+        var p = await AccountStore.GetProfileAsync();
+        if (p is not null && !string.IsNullOrWhiteSpace(p.AvatarEmoji))
             return p.AvatarEmoji;
         return AccountStore.DefaultAvatar;
     }

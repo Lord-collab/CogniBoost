@@ -6,56 +6,71 @@ public static class SettingsService
     private const string LargeTextKey = "cb_large_text";
     private const string SoundKey = "cb_sound";
     public const string AppDownloadUrl = "https://github.com/Lord-collab/CogniBoost/releases/latest/download/CogniBoost.apk";
-    public const string AppVersion = "1.0.0";
+    public const string AppVersion = "1.2.0";
 
-    public static string Theme
+    private static string _theme = "system";
+    private static bool _largeText;
+    private static bool _soundEnabled = true;
+
+    public static async Task InitAsync()
     {
-        get => DatabaseService.Sync(async () =>
-            await DatabaseService.GetSettingAsync(ThemeKey, "system"));
-        set => DatabaseService.Sync(async () =>
-            await DatabaseService.SetSettingAsync(ThemeKey, value));
+        _theme = await DatabaseService.GetSettingAsync(ThemeKey, "system");
+        _largeText = await DatabaseService.GetSettingAsync(LargeTextKey, "false") == "true";
+        _soundEnabled = await DatabaseService.GetSettingAsync(SoundKey, "true") == "true";
     }
 
-    public static bool LargeText
+    public static string Theme => _theme;
+
+    public static async Task SetThemeAsync(string value)
     {
-        get => DatabaseService.Sync(async () =>
-            await DatabaseService.GetSettingAsync(LargeTextKey, "false")) == "true";
-        set => DatabaseService.Sync(async () =>
-            await DatabaseService.SetSettingAsync(LargeTextKey, value ? "true" : "false"));
+        _theme = value;
+        await DatabaseService.SetSettingAsync(ThemeKey, value);
     }
 
-    public static bool SoundEnabled
+    public static bool LargeText => _largeText;
+
+    public static async Task SetLargeTextAsync(bool value)
     {
-        get => DatabaseService.Sync(async () =>
-            await DatabaseService.GetSettingAsync(SoundKey, "true")) == "true";
-        set => DatabaseService.Sync(async () =>
-            await DatabaseService.SetSettingAsync(SoundKey, value ? "true" : "false"));
+        _largeText = value;
+        await DatabaseService.SetSettingAsync(LargeTextKey, value ? "true" : "false");
     }
 
-    public static double TextScale => LargeText ? 1.15 : 1.0;
+    public static bool SoundEnabled => _soundEnabled;
+
+    public static async Task SetSoundEnabledAsync(bool value)
+    {
+        _soundEnabled = value;
+        await DatabaseService.SetSettingAsync(SoundKey, value ? "true" : "false");
+    }
+
+    public static double TextScale => _largeText ? 1.15 : 1.0;
 
     public static void ApplyAll()
     {
         ApplyTheme();
-        if (Application.Current?.Windows.Count > 0)
-        {
-            var page = Application.Current.Windows[0].Page;
-            if (page is ContentPage cp) ApplyTextScale(cp);
-            else if (page is NavigationPage nav && nav.CurrentPage is ContentPage navCp) ApplyTextScale(navCp);
-            else if (page is Shell shell && shell.CurrentPage is ContentPage shellCp) ApplyTextScale(shellCp);
-        }
+        ApplyTextScaleToActivePage();
     }
 
     public static void ApplyTheme()
     {
         if (Application.Current is null) return;
 
-        Application.Current.UserAppTheme = Theme switch
+        Application.Current.UserAppTheme = _theme switch
         {
             "light" => AppTheme.Light,
             "dark" => AppTheme.Dark,
             _ => AppTheme.Unspecified
         };
+    }
+
+    private static void ApplyTextScaleToActivePage()
+    {
+        if (Application.Current?.Windows is not { Count: > 0 } windows) return;
+
+        var page = windows[0].Page;
+        if (page is ContentPage cp) ApplyTextScale(cp);
+        else if (page is NavigationPage nav && nav.CurrentPage is ContentPage navCp) ApplyTextScale(navCp);
+        else if (page is Shell shell && shell.CurrentPage is ContentPage shellCp) ApplyTextScale(shellCp);
     }
 
     private static readonly BindableProperty BaseFontSizeProperty = BindableProperty.CreateAttached(

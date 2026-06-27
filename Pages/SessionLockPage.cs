@@ -15,14 +15,7 @@ public sealed class SessionLockPage : ContentPage
         Shell.SetNavBarIsVisible(this, false);
         BackgroundColor = ThemeColors.PageBg;
 
-        AccountStore.TryGetCurrentProfile(out var profile);
-        var name = profile?.Username ?? "Добро пожаловать";
-
-        _greetingLabel.Text      = $"👋 {name}";
-        _greetingLabel.FontSize  = 28;
-        _greetingLabel.FontAttributes = FontAttributes.Bold;
-        _greetingLabel.TextColor = ThemeColors.TextPrimary;
-        _greetingLabel.HorizontalOptions = LayoutOptions.Center;
+        _ = LoadProfileAsync();
 
         _errorLabel.TextColor  = ThemeColors.Error;
         _errorLabel.FontSize   = 13;
@@ -102,12 +95,19 @@ public sealed class SessionLockPage : ContentPage
         Loaded += (_, _) => _passwordEntry.Focus();
     }
 
-    private void OnUnlock(object? sender, EventArgs e)
+    private async Task LoadProfileAsync()
     {
-        if (!AccountStore.TrySignIn(
+        var profile = await AccountStore.GetProfileAsync();
+        var name = profile?.Username ?? "Добро пожаловать";
+        _greetingLabel.Text = $"👋 {name}";
+    }
+
+    private async void OnUnlock(object? sender, EventArgs e)
+    {
+        var (success, error) = await AccountStore.TrySignInAsync(
                 AccountStore.GetCurrentUsernameKey(),
-                _passwordEntry.Text ?? string.Empty,
-                out var error))
+                _passwordEntry.Text ?? string.Empty);
+        if (!success)
         {
             _errorLabel.Text      = error;
             _errorLabel.IsVisible = true;

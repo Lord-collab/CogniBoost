@@ -19,7 +19,7 @@ public sealed class StorePage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        Refresh();
+        _ = RefreshAsync();
     }
 
     private void BuildUi()
@@ -74,9 +74,9 @@ public sealed class StorePage : ContentPage
         };
     }
 
-    private void Refresh()
+    private async Task RefreshAsync()
     {
-        _balanceLabel.Text = $"{PointsService.GetBalance()} ⭐";
+        _balanceLabel.Text = $"{await PointsService.GetBalanceAsync()} ⭐";
 
         _list.Children.Clear();
         var lockedGames = GameCatalog.All.Where(g => !g.Starter).ToList();
@@ -178,10 +178,11 @@ public sealed class StorePage : ContentPage
             "Открыть", "Отмена");
         if (!confirm) return;
 
-        if (UnlockService.TryUnlock(game, out var message))
+        var (success, message) = await UnlockService.TryUnlockAsync(game);
+        if (success)
         {
             await DisplayAlertAsync("Готово", message, "Ок");
-            Refresh();
+            await RefreshAsync();
         }
         else
         {
