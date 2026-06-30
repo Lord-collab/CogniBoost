@@ -2,6 +2,15 @@ using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Хранилище прогресса — чтение/запись истории игр и тестов.
+///
+/// Формула навыка: для каждой игры берётся лучшая точность → усредняется
+/// по всем играм навыка → умножается на 1000.
+/// Итоговый балл (OverallScore) — среднее по всем навыкам.
+///
+/// История ограничена 200 записей на пользователя (FIFO).
+/// </summary>
 public static class ProgressStore
 {
     private const int MaxHistoryItems = 200;

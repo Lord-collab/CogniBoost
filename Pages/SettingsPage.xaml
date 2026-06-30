@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CogniBoost.Pages.SettingsPage"
+             Title="Настройки"
+             BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,16" Spacing="16">
+
+            <!-- Title -->
+            <Label Text="Настройки" FontSize="28" FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+
+            <!-- ══════ АККАУНТ ══════ -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="АККАУНТ" FontSize="13" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Отображаемое имя" FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+                        <Border StrokeShape="RoundRectangle 12" StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                Padding="12,4">
+                            <Entry x:Name="NameEntry" Placeholder="Отображаемое имя" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Возраст" FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+                        <Border StrokeShape="RoundRectangle 12" StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                Padding="12,4">
+                            <Entry x:Name="AgeEntry" Placeholder="Возраст" Keyboard="Numeric" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <Button Text="Сохранить" Clicked="OnSaveProfileClicked"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White" HeightRequest="50" CornerRadius="14" FontAttributes="Bold" />
+
+                    <Button Text="Сменить пароль" Clicked="OnChangePasswordClicked"
+                            BackgroundColor="{StaticResource Tertiary}"
+                            TextColor="White" HeightRequest="50" CornerRadius="14" FontAttributes="Bold" />
+
+                    <Button Text="Изменить направления" Clicked="OnChangeDirectionsClicked"
+                            BackgroundColor="{StaticResource Secondary}"
+                            TextColor="White" HeightRequest="50" CornerRadius="14" FontAttributes="Bold" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ══════ ОФОРМЛЕНИЕ ══════ -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="ОФОРМЛЕНИЕ" FontSize="13" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Border x:Name="SystemChip" StrokeShape="RoundRectangle 20" Padding="16,10" StrokeThickness="1.5">
+                            <Label x:Name="SystemChipLabel" Text="Системная" FontSize="13" />
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnThemeChipTapped" CommandParameter="system" />
+                            </Border.GestureRecognizers>
+                        </Border>
+                        <Border x:Name="LightChip" StrokeShape="RoundRectangle 20" Padding="16,10" StrokeThickness="1.5">
+                            <Label x:Name="LightChipLabel" Text="Светлая" FontSize="13" />
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnThemeChipTapped" CommandParameter="light" />
+                            </Border.GestureRecognizers>
+                        </Border>
+                        <Border x:Name="DarkChip" StrokeShape="RoundRectangle 20" Padding="16,10" StrokeThickness="1.5">
+                            <Label x:Name="DarkChipLabel" Text="Тёмная" FontSize="13" />
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnThemeChipTapped" CommandParameter="dark" />
+                            </Border.GestureRecognizers>
+                        </Border>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ══════ ДОСТУПНОСТЬ ══════ -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="ДОСТУПНОСТЬ" FontSize="13" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Крупный текст" FontSize="15"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                               VerticalOptions="Center" />
+                        <Switch x:Name="LargeTextSwitch" Grid.Column="1" Toggled="OnLargeTextToggled" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ══════ ЗВУК ══════ -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="ЗВУК" FontSize="13" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Звуковые эффекты" FontSize="15"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                               VerticalOptions="Center" />
+                        <Switch x:Name="SoundSwitch" Grid.Column="1" Toggled="OnSoundToggled" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ══════ УВЕДОМЛЕНИЯ ══════ -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="УВЕДОМЛЕНИЯ" FontSize="13" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Напоминание о тренировке" FontSize="15"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                               VerticalOptions="Center" />
+                        <Switch x:Name="NotifSwitch" Grid.Column="1" Toggled="OnNotifToggled" />
+                    </Grid>
+
+                    <VerticalStackLayout x:Name="TimePickerSection" Spacing="4" IsVisible="false">
+                        <Label Text="Время напоминания" FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+                        <Border StrokeShape="RoundRectangle 12" StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderLight}, Dark={StaticResource CardBorderDark}}"
+                                Padding="12,4">
+                            <TimePicker x:Name="NotificationTimePicker" PropertyChanged="OnNotifTimeChanged" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <Label Text="Уведомление придёт в выбранное время каждый день." FontSize="12"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ══════ О ПРИЛОЖЕНИИ ══════ -->
+            <Border StrokeShape="RoundRectangle 16" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="О ПРИЛОЖЕНИИ" FontSize="13" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
+
+                    <Button Text="Поделиться приложением" Clicked="OnShareClicked"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White" HeightRequest="50" CornerRadius="14" FontAttributes="Bold" />
+
+                    <Button Text="Экспортировать статистику" Clicked="OnExportClicked"
+                            BackgroundColor="{StaticResource Secondary}"
+                            TextColor="White" HeightRequest="50" CornerRadius="14" FontAttributes="Bold" />
+
+                    <Button Text="Сбросить прогресс" Clicked="OnResetProgressClicked"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Error}"
+                            BorderColor="{StaticResource Error}"
+                            BorderWidth="1.5"
+                            HeightRequest="50" CornerRadius="14" FontAttributes="Bold" />
+
+                    <Label x:Name="VersionLabel" Text="" FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

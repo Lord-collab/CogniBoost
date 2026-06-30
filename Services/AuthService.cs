@@ -4,6 +4,13 @@ using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Центральный сервис аутентификации.
+/// Хранит состояние через Preferences (не SQLite), чтобы работать до инициализации БД.
+///
+/// Пароли хешируются SHA-256 + соль (32 байта). Исторические записи без соли
+/// автоматически мигрируются при первом успешном входе (см. TrySignInAsync).
+/// </summary>
 public static class AuthService
 {
     private const string IsSignedInKey = "cb_signed_in";
@@ -12,8 +19,10 @@ public static class AuthService
 
     public const string DefaultAvatar = "\U0001F9E0";
 
+    /// <summary>Состояние сессии — живёт в Preferences, а не в SQLite.</summary>
     public static bool IsSignedIn => Preferences.Default.Get(IsSignedInKey, false);
 
+    /// <summary>Гость — упрощённый режим без пароля, данные живут до миграции.</summary>
     public static bool IsGuest => !IsSignedIn && Preferences.Default.Get(GuestModeKey, false);
 
     public static async Task<bool> HasAccountAsync()
@@ -95,7 +104,15 @@ public static class AuthService
         return true;
     }
 
-    public static async Task SaveAccountAsync(string username, int age, string password)
+    public static async Task<string?> GetPasswordHintAsync(string username)
+    {
+        var usernameKey = NormalizeUsername((username ?? string.Empty).Trim());
+        if (string.IsNullOrWhiteSpace(usernameKey)) return null;
+        var user = await DatabaseService.Db.FindAsync<UserEntity>(usernameKey);
+        return user?.PasswordHint;
+    }
+
+    public static async Task SaveAccountAsync(string username, int age, string password, string? hint = null)
     {
         var displayUsername = username.Trim();
         var usernameKey = NormalizeUsername(displayUsername);
@@ -112,6 +129,7 @@ public static class AuthService
                 AvatarEmoji = DefaultAvatar,
                 PasswordHash = ComputeHash(password, salt),
                 PasswordSalt = salt,
+                PasswordHint = hint,
             });
         }
         else
@@ -120,6 +138,7 @@ public static class AuthService
             existing.Age = age;
             existing.PasswordHash = ComputeHash(password, salt);
             existing.PasswordSalt = salt;
+            if (hint is not null) existing.PasswordHint = hint;
             await DatabaseService.Db.UpdateAsync(existing);
         }
 
@@ -160,7 +179,7 @@ public static class AuthService
         Preferences.Default.Set(CurrentUserKey, string.Empty);
     }
 
-    public static async Task MigrateGuestDataAsync(string displayName, int age, string password)
+    public static async Task MigrateGuestDataAsync(string displayName, int age, string password, string? hint = null)
     {
         var usernameKey = NormalizeUsername(displayName);
         var salt = GenerateSalt();
@@ -175,7 +194,8 @@ public static class AuthService
             guest.Age = age;
             guest.PasswordHash = passwordHash;
             guest.PasswordSalt = salt;
-            guest.Onboarded = true;
+            guest.Onboarded = false;
+            guest.PasswordHint = hint;
             await DatabaseService.Db.InsertAsync(guest);
         }
 
@@ -184,9 +204,9 @@ public static class AuthService
         await DatabaseService.Db.ExecuteAsync(
             "UPDATE TestHistory SET UsernameKey = ? WHERE UsernameKey = 'guest'", usernameKey);
 
+        ExitGuestMode();
         Preferences.Default.Set(CurrentUserKey, usernameKey);
         Preferences.Default.Set(IsSignedInKey, true);
-        ExitGuestMode();
     }
 
     public static async Task<(bool Success, string Error)> TryChangePasswordAsync(string oldPassword, string newPassword, string confirmPassword)

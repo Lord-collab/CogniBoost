@@ -17,13 +17,15 @@ public static class AccountStore
     public static string GetCurrentUsernameKey() => AuthService.GetCurrentUsernameKey();
     public static bool TryValidateRegistration(string username, string ageText, string password, string confirmPassword, out int age, out string error)
         => AuthService.TryValidateRegistration(username, ageText, password, confirmPassword, out age, out error);
-    public static Task SaveAccountAsync(string username, int age, string password)
-        => AuthService.SaveAccountAsync(username, age, password);
+    public static Task<string?> GetPasswordHintAsync(string username)
+        => AuthService.GetPasswordHintAsync(username);
+    public static Task SaveAccountAsync(string username, int age, string password, string? hint = null)
+        => AuthService.SaveAccountAsync(username, age, password, hint);
     public static Task<(bool Success, string Error)> TrySignInAsync(string username, string password)
         => AuthService.TrySignInAsync(username, password);
     public static void SignOut() => AuthService.SignOut();
-    public static Task MigrateGuestDataAsync(string displayName, int age, string password)
-        => AuthService.MigrateGuestDataAsync(displayName, age, password);
+    public static Task MigrateGuestDataAsync(string displayName, int age, string password, string? hint = null)
+        => AuthService.MigrateGuestDataAsync(displayName, age, password, hint);
     public static Task<(bool Success, string Error)> TryChangePasswordAsync(string oldPassword, string newPassword, string confirmPassword)
         => AuthService.TryChangePasswordAsync(oldPassword, newPassword, confirmPassword);
 

@@ -3,6 +3,9 @@ using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Достижение: ID, название, описание, эмодзи, статус и дата разблокировки.
+/// </summary>
 public sealed record Achievement(
     string Id,
     string Title,
@@ -11,6 +14,14 @@ public sealed record Achievement(
     bool IsUnlocked,
     DateTime? UnlockedAt);
 
+/// <summary>
+/// Система достижений — 24 штуки.
+/// CheckAndUnlock() собирает состояние (история, баллы, стрики) и проходит
+/// по всем условиям разблокировки. Достижения хранятся как JSON-словарь
+/// в UserEntity.AchievementsJson.
+///
+/// Новые достижения возвращаются списком → вызывающий код показывает попап.
+/// </summary>
 public static class AchievementsService
 {
     private static readonly (string Id, string Title, string Description, string Emoji)[] Definitions =

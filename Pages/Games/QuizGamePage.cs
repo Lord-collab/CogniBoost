@@ -6,6 +6,14 @@ namespace CogniBoost.Pages.Games;
 
 public sealed record QuizQuestion(string Prompt, string[] Options, int CorrectIndex);
 
+/// <summary>
+/// Абстрактный базовый класс для квиз-игр (вопрос-варианты ответа).
+/// Предоставляет: таймер на вопрос (20 с), прогресс-бар, блокировку
+/// повторного нажатия, подсчёт точности.
+///
+/// Наследники (MatrixLogicGamePage, OddWordGamePage, WordChainGamePage)
+/// только передают список вопросов в конструктор.
+/// </summary>
 public abstract class QuizGamePage : GameBasePage
 {
     private const int TimePerQuestion = 20;

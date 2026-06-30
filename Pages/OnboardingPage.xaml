@@ -5,7 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     Shell.NavBarIsVisible="False"
     NavigationPage.HasNavigationBar="False"
-    BackgroundColor="{StaticResource PageBackgroundLight}">
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}">
 
     <Grid Padding="24" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="14">
 
@@ -14,13 +14,13 @@
             Text="Что хочешь развивать?"
             FontSize="26"
             FontAttributes="Bold"
-            TextColor="{StaticResource TextPrimaryLight}" />
+            TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
 
         <Label
             Grid.Row="1"
             Text="Выбери одно или несколько направлений. Можно изменить позже."
             FontSize="14"
-            TextColor="{StaticResource TextMutedLight}" />
+            TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
 
         <CollectionView
             Grid.Row="2"
@@ -44,10 +44,13 @@
                         <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
                             <Label Grid.Column="0" Text="{Binding Emoji}" FontSize="34" VerticalOptions="Center" />
                             <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                                <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource TextPrimaryLight}" />
-                                <Label Text="{Binding Description}" FontSize="13" TextColor="{StaticResource TextMutedLight}" />
+                                <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                                <Label Text="{Binding Description}" FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
                             </VerticalStackLayout>
-                            <Label Grid.Column="2" Text="{Binding CheckMark}" FontSize="22" VerticalOptions="Center" TextColor="{Binding AccentColor}" />
+                            <Label Grid.Column="2" Text="{Binding CheckMark}" FontSize="22" VerticalOptions="Center"
+                                   TextColor="{Binding AccentColor}" />
                         </Grid>
                     </Border>
                 </DataTemplate>

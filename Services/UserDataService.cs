@@ -161,6 +161,7 @@ public static class UserDataService
         }
         catch
         {
+            System.Diagnostics.Debug.WriteLine("[UserData] Failed to load skills");
             return new List<BrainSkill>();
         }
     }

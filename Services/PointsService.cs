@@ -2,6 +2,16 @@ using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Система баллов (игровая валюта).
+///
+/// AwardForResult(accuracy): точность преобразуется в баллы по формуле
+///   BasePoints (10) + нормализованная точность * MaxScaledPoints (40).
+///   При >= 90% добавляется NearPerfectBonus (+15).
+///   Итого диапазон: 10–65 баллов за игру.
+///
+/// Баланс и пожизненные баллы хранятся в UserEntity.PointsBalance/Lifetime.
+/// </summary>
 public static class PointsService
 {
     private const int BasePoints = 10;

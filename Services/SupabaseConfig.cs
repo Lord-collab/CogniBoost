@@ -29,7 +29,7 @@ public static class SupabaseConfig
     private static string? LoadFromSecure(string key)
     {
         try { return SecureStorage.Default.GetAsync(key).GetAwaiter().GetResult(); }
-        catch { return null; }
+        catch { return null; /* SecureStorage недоступно — используем значения по умолчанию */ }
     }
 }
 

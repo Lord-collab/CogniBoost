@@ -51,7 +51,7 @@ public partial class OnboardingPage : ContentPage
             Title = meta.Title;
             Description = meta.Description;
             Emoji = meta.Emoji;
-            AccentColor = Color.FromArgb(meta.AccentHex);
+            AccentColor = ThemeColors.SkillColor(meta.Skill);
         }
 
         public BrainSkill Skill { get; }

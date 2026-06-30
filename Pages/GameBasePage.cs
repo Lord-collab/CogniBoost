@@ -4,8 +4,15 @@ using CogniBoost.Services;
 namespace CogniBoost.Pages;
 
 /// <summary>
-/// Базовый класс для мини-игр.
-/// Завершение сессии: запись результата → streak → очки → достижения → результат.
+/// Базовый класс для всех 14 мини-игр.
+/// Наследник обязан: (1) передать GameDefinition в конструктор базового класса;
+/// (2) вызвать FinishAsync() по завершении игровой сессии.
+///
+/// FinishAsync() выполняет стандартный пайплайн:
+///   Сохранение результата → StreakService → AchievementsService →
+///   → попап новых достижений → фоновая синхронизация → GameResultPage.
+///
+/// Если игра совпадает с ежедневным заданием — баллы удваиваются.
 /// </summary>
 public abstract class GameBasePage : ContentPage
 {
@@ -18,6 +25,10 @@ public abstract class GameBasePage : ContentPage
 
     protected GameDefinition Definition { get; }
 
+    /// <summary>
+    /// Завершает игровую сессию: сохраняет результат, обновляет стрик,
+    /// проверяет достижения, синхронизирует с облаком и показывает результат.
+    /// </summary>
     protected async Task FinishAsync(int score, int maxScore)
     {
         var accuracy = maxScore > 0 ? Math.Clamp(score / (double)maxScore, 0, 1) : 0;

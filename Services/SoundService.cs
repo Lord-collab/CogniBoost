@@ -23,13 +23,13 @@ public static class SoundService
             player.SetDataSource(path);
             player.Prepare();
             player.Start();
-            player.Completion += (_, _) =>
-            {
-                player.Release();
-                try { System.IO.File.Delete(path); } catch { }
-            };
-        }
-        catch { }
+                player.Completion += (_, _) =>
+                {
+                    player.Release();
+                    try { System.IO.File.Delete(path); } catch { /* Файл может быть занят */ }
+                };
+            }
+            catch { /* Звук не критичен — продолжаем без него */ }
 #endif
     }
 

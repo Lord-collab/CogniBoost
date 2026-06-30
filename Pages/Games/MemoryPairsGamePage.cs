@@ -4,6 +4,12 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages.Games;
 
+/// <summary>
+/// Классический мемори: сетка карточек (6 пар), открываются по две за ход.
+/// Пары загружаются из JSON (games/memory_pairs.json); если файла нет —
+/// используется встроенный список эмодзи-пар (fallback).
+/// Очки: (макс_ходов / факт_ходов) × 10.
+/// </summary>
 public sealed class MemoryPairsGamePage : GameBasePage
 {
     private const int Pairs = 6;

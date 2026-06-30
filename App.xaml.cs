@@ -1,8 +1,20 @@
-﻿using CogniBoost.Pages;
+using CogniBoost.Pages;
 using CogniBoost.Services;
 
 namespace CogniBoost;
 
+/// <summary>
+/// Точка входа. Жизненный цикл:
+///   Сплеш-скрин → инициализация БД/настроек → корневая страница.
+///
+/// Корневая страница выбирается по приоритету:
+///   1. Гостевой режим → AppShell
+///   2. Не авторизован → WelcomePage (регистрация/вход)
+///   3. Не пройден онбординг → OnboardingPage
+///   4. Всё ок → AppShell (5 вкладок)
+///
+/// Сессия: при фоне >30 мин показывается SessionLockPage.
+/// </summary>
 public partial class App : Application
 {
     private static readonly TimeSpan SessionTimeout = TimeSpan.FromMinutes(30);
@@ -43,11 +55,13 @@ public partial class App : Application
         _ = Task.Run(async () =>
         {
             await DatabaseService.InitAsync();
+            await SettingsService.InitAsync();
+            await UnlockService.RefreshCacheAsync();
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 try
                 {
-                    SettingsService.ApplyTheme();
+                    SettingsService.ApplyAll();
                     window.Page = await BuildRootPageAsync();
                 }
                 catch (Exception ex)
@@ -89,6 +103,12 @@ public partial class App : Application
 
     public static async Task<Page> BuildRootPageAsync()
     {
+        if (AccountStore.IsSignedIn && string.IsNullOrWhiteSpace(
+            Preferences.Default.Get("cb_current_user", string.Empty)))
+        {
+            AccountStore.SignOut();
+        }
+
         if (AccountStore.IsGuest)
             return new AppShell();
 

@@ -23,14 +23,16 @@ public partial class RegisterPage : ContentPage
             return;
         }
 
+        var hint = string.IsNullOrWhiteSpace(HintEntry.Text) ? null : HintEntry.Text.Trim();
+
         if (AccountStore.IsGuest)
         {
             await AccountStore.MigrateGuestDataAsync(
-                UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!);
+                UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!, hint);
         }
         else
         {
-            await AccountStore.SaveAccountAsync(UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!);
+            await AccountStore.SaveAccountAsync(UsernameEntry.Text!.Trim(), age, PasswordEntry.Text!, hint);
         }
 
         // Синхронизируем профиль с облаком (fire-and-forget)

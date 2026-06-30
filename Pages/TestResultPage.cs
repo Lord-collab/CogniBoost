@@ -171,7 +171,8 @@ public sealed class TestResultPage : ContentPage
         {
             Title = "Мой результат в CogniBoost",
             Text = $"Мой IQ в CogniBoost: {result.IqScore} ({TestBank.IqBand(result.IqScore)})! " +
-                   $"Правильных ответов: {result.CorrectAnswers} из {result.TotalQuestions}."
+                   $"Правильных ответов: {result.CorrectAnswers} из {result.TotalQuestions}.\n\n" +
+                   $"Скачать: {SettingsService.AppDownloadUrl}"
         });
     }
 }

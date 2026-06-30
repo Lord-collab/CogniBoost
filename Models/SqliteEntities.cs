@@ -21,6 +21,7 @@ public sealed class UserEntity
     public int StreakLongest { get; set; }
     public string? UnlockedGamesJson { get; set; }
     public string? AchievementsJson { get; set; }
+    public string? PasswordHint { get; set; }
 }
 
 [Table("GameHistory")]

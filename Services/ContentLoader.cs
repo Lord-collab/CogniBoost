@@ -20,6 +20,7 @@ public static class ContentLoader
         }
         catch
         {
+            System.Diagnostics.Debug.WriteLine($"[ContentLoader] Failed to load list: {filename}");
             return new();
         }
     }
@@ -35,6 +36,7 @@ public static class ContentLoader
         }
         catch
         {
+            System.Diagnostics.Debug.WriteLine($"[ContentLoader] Failed to load single: {filename}");
             return null;
         }
     }

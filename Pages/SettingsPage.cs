@@ -1,21 +1,13 @@
 using CogniBoost.Models;
 using CogniBoost.Services;
-using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.ApplicationModel;
 using Permissions = Microsoft.Maui.ApplicationModel.Permissions;
 using Microsoft.Maui.Devices;
 
 namespace CogniBoost.Pages;
 
-public sealed class SettingsPage : ContentPage
+public partial class SettingsPage : ContentPage
 {
-    private readonly Picker _themePicker = new();
-    private readonly Switch _largeTextSwitch = new();
-    private readonly Switch _notifSwitch = new();
-    private readonly TimePicker _timePicker = new();
-    private readonly Entry _nameEntry = new() { Keyboard = Keyboard.Text };
-    private readonly Entry _ageEntry = new() { Keyboard = Keyboard.Numeric };
-
     private static readonly (string Label, string Value)[] Themes =
     {
         ("Системная", "system"),
@@ -25,219 +17,100 @@ public sealed class SettingsPage : ContentPage
 
     public SettingsPage()
     {
-        Title = "Настройки";
-        BackgroundColor = ThemeColors.PageBg;
-        BuildUi();
+        InitializeComponent();
     }
 
-    private void BuildUi()
+    protected override void OnAppearing()
     {
-        _nameEntry.Placeholder = "Отображаемое имя";
-        _nameEntry.BackgroundColor = ThemeColors.CardBg;
-        _nameEntry.TextColor = ThemeColors.TextPrimary;
-
-        _ageEntry.Placeholder = "Возраст";
-        _ageEntry.BackgroundColor = ThemeColors.CardBg;
-        _ageEntry.TextColor = ThemeColors.TextPrimary;
-
-        var saveProfileBtn = MakeButton("Сохранить", ThemeColors.Accent);
-        saveProfileBtn.Clicked += OnSaveProfile;
-
-        var changePasswordBtn = MakeButton("Сменить пароль", ThemeColors.Tertiary);
-        changePasswordBtn.Clicked += async (_, _) => await Navigation.PushAsync(new ChangePasswordPage());
-
-        var changeDirectionsBtn = MakeButton("Изменить направления", ThemeColors.Secondary, textColorC: Colors.White);
-        changeDirectionsBtn.Clicked += OnChangeDirections;
-
-        var accountSection = BuildSection("Аккаунт", new VerticalStackLayout
-        {
-            Spacing = 10,
-            Children =
-            {
-                BuildLabeledEntry("Отображаемое имя", _nameEntry),
-                BuildLabeledEntry("Возраст", _ageEntry),
-                saveProfileBtn,
-                changePasswordBtn,
-                changeDirectionsBtn,
-            }
-        });
-
-        // ── Оформление ────────────────────────────────────────────────
-        foreach (var (label, _) in Themes) _themePicker.Items.Add(label);
-        _themePicker.SelectedIndex = Math.Max(0, Array.FindIndex(Themes, t => t.Value == SettingsService.Theme));
-        _themePicker.BackgroundColor = ThemeColors.CardBg;
-        _themePicker.TextColor = ThemeColors.TextPrimary;
-        _themePicker.SelectedIndexChanged += async (_, _) =>
-        {
-            var idx = _themePicker.SelectedIndex;
-            if (idx >= 0 && idx < Themes.Length)
-            {
-                await SettingsService.SetThemeAsync(Themes[idx].Value);
-                SettingsService.ApplyTheme();
-            }
-        };
-
-        var appearanceSection = BuildSection("Оформление", new VerticalStackLayout
-        {
-            Spacing = 10,
-            Children =
-            {
-                BuildLabeledPicker("Тема", _themePicker),
-            }
-        });
-
-        // ── Доступность ───────────────────────────────────────────────
-        _largeTextSwitch.IsToggled = SettingsService.LargeText;
-        _largeTextSwitch.OnColor = ThemeColors.Accent;
-        _largeTextSwitch.Toggled += async (_, e) =>
-        {
-            await SettingsService.SetLargeTextAsync(e.Value);
-            SettingsService.ApplyAll();
-        };
-
-        var accessibilitySection = BuildSection("Доступность", new VerticalStackLayout
-        {
-            Spacing = 10,
-            Children = { BuildToggleRow("Крупный текст", _largeTextSwitch) }
-        });
-
-        // ── Звук ──────────────────────────────────────────────────────
-        var soundSwitch = new Switch
-        {
-            IsToggled = SettingsService.SoundEnabled,
-            OnColor = ThemeColors.Accent
-        };
-        soundSwitch.Toggled += async (_, e) => await SettingsService.SetSoundEnabledAsync(e.Value);
-
-        var soundSection = BuildSection("Звук", new VerticalStackLayout
-        {
-            Spacing = 10,
-            Children = { BuildToggleRow("Звуковые эффекты", soundSwitch) }
-        });
-
-        // ── Уведомления ───────────────────────────────────────────────
-        _notifSwitch.IsToggled = NotificationService.IsEnabled;
-        _notifSwitch.OnColor = ThemeColors.Accent;
-        _notifSwitch.Toggled += async (_, e) =>
-        {
-            if (e.Value && DeviceInfo.Platform == DevicePlatform.Android && DeviceInfo.Version.Major >= 13)
-            {
-                var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
-                if (status != PermissionStatus.Granted)
-                {
-                    status = await Permissions.RequestAsync<Permissions.PostNotifications>();
-                    if (status != PermissionStatus.Granted)
-                    {
-                        await DisplayAlertAsync("Ошибка",
-                            "Для уведомлений нужно разрешение. Включите его в настройках системы.",
-                            "OK");
-                        _notifSwitch.IsToggled = false;
-                        return;
-                    }
-                }
-            }
-
-            NotificationService.IsEnabled = e.Value;
-            _timePicker.IsVisible = e.Value;
-            if (e.Value) await NotificationService.ScheduleDailyReminderAsync();
-            else NotificationService.CancelAll();
-        };
-
-        _timePicker.Time = NotificationService.ReminderTime;
-        _timePicker.IsVisible = NotificationService.IsEnabled;
-        _timePicker.BackgroundColor = ThemeColors.CardBg;
-        _timePicker.TextColor = ThemeColors.TextPrimary;
-        _timePicker.PropertyChanged += async (_, e) =>
-        {
-            if (e.PropertyName == nameof(TimePicker.Time))
-            {
-                NotificationService.ReminderTime = _timePicker.Time ?? TimeSpan.FromHours(20);
-                if (NotificationService.IsEnabled)
-                    await NotificationService.ScheduleDailyReminderAsync();
-            }
-        };
-
-        var notifHint = new Label
-        {
-            Text = "Уведомление придёт в выбранное время каждый день.",
-            FontSize = 12,
-            TextColor = ThemeColors.TextMuted
-        };
-
-        var notifSection = BuildSection("Уведомления", new VerticalStackLayout
-        {
-            Spacing = 10,
-            Children =
-            {
-                BuildToggleRow("Напоминание о тренировке", _notifSwitch),
-                BuildLabeledView("Время напоминания", _timePicker),
-                notifHint,
-            }
-        });
-
-        // ── О приложении ──────────────────────────────────────────────
-        var shareBtn = MakeButton("Поделиться приложением", ThemeColors.Accent);
-        shareBtn.Clicked += async (_, _) => await ShareApp();
-
-        var exportBtn = MakeButton("Экспортировать статистику", ThemeColors.Secondary, textColorC: Colors.White);
-        exportBtn.Clicked += async (_, _) => await ExportStats();
-
-        var resetBtn = MakeButton("Сбросить прогресс", Colors.Transparent,
-            textColorC: ThemeColors.Error, borderColorC: ThemeColors.Error);
-        resetBtn.Clicked += async (_, _) => await ResetProgress();
-
-        var versionLabel = new Label
-        {
-            Text = $"CogniBoost v{SettingsService.AppVersion}",
-            FontSize = 13,
-            TextColor = ThemeColors.TextMuted,
-            HorizontalTextAlignment = TextAlignment.Center
-        };
-
-        var aboutSection = BuildSection("О приложении", new VerticalStackLayout
-        {
-            Spacing = 10,
-            Children = { shareBtn, exportBtn, resetBtn, versionLabel }
-        });
-
-        Content = new ScrollView
-        {
-            Content = new VerticalStackLayout
-            {
-                Padding = new Thickness(20, 16),
-                Spacing = 16,
-                Children =
-                {
-                    new Label
-                    {
-                        Text = "Настройки", FontSize = 28,
-                        FontAttributes = FontAttributes.Bold, TextColor = ThemeColors.TextPrimary
-                    },
-                    accountSection,
-                    appearanceSection,
-                    accessibilitySection,
-                    soundSection,
-                    notifSection,
-                    aboutSection,
-                }
-            }
-        };
+        base.OnAppearing();
+        LoadSettings();
+        _ = LoadProfileAsync();
     }
 
-    // ── Обработчики ──────────────────────────────────────────────────
-    private async void OnSaveProfile(object? sender, EventArgs e)
+    // ── Загрузка ──────────────────────────────────────────────────
+
+    private void LoadSettings()
+    {
+        UpdateThemeChips(SettingsService.Theme);
+
+        LargeTextSwitch.IsToggled = SettingsService.LargeText;
+        SoundSwitch.IsToggled = SettingsService.SoundEnabled;
+
+        NotifSwitch.IsToggled = NotificationService.IsEnabled;
+        NotificationTimePicker.Time = NotificationService.ReminderTime;
+        TimePickerSection.IsVisible = NotificationService.IsEnabled;
+
+        VersionLabel.Text = $"CogniBoost v{SettingsService.AppVersion}";
+    }
+
+    private async Task LoadProfileAsync()
+    {
+        var profile = await AccountStore.GetProfileAsync();
+        if (profile is null) return;
+
+        NameEntry.Text = profile.Username;
+        AgeEntry.Text = profile.Age > 0 ? profile.Age.ToString() : string.Empty;
+    }
+
+    // ── Тема ──────────────────────────────────────────────────────
+
+    private void UpdateThemeChips(string theme)
+    {
+        var isDark = Application.Current?.RequestedTheme == AppTheme.Dark;
+
+        foreach (var (chip, label, value) in new[]
+        {
+            (SystemChip, SystemChipLabel, "system"),
+            (LightChip, LightChipLabel, "light"),
+            (DarkChip, DarkChipLabel, "dark"),
+        })
+        {
+            var selected = value == theme;
+            if (selected)
+            {
+                chip.BackgroundColor = (Color)Application.Current!.Resources["Primary"];
+                chip.Stroke = Colors.Transparent;
+                chip.StrokeThickness = 0;
+                label.TextColor = Colors.White;
+            }
+            else
+            {
+                chip.BackgroundColor = (Color)Application.Current!.Resources[
+                    isDark ? "CardSecondaryDark" : "CardSecondaryLight"];
+                chip.Stroke = (Color)Application.Current!.Resources[
+                    isDark ? "CardBorderDark" : "CardBorderLight"];
+                chip.StrokeThickness = 1.5;
+                label.TextColor = (Color)Application.Current!.Resources[
+                    isDark ? "TextPrimaryDark" : "TextPrimaryLight"];
+            }
+        }
+    }
+
+    private async void OnThemeChipTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Parameter is not string theme) return;
+        if (theme == SettingsService.Theme) return;
+
+        await SettingsService.SetThemeAsync(theme);
+        SettingsService.ApplyTheme();
+        UpdateThemeChips(theme);
+    }
+
+    // ── Аккаунт ───────────────────────────────────────────────────
+
+    private async void OnSaveProfileClicked(object? sender, EventArgs e)
     {
         var errors = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(_nameEntry.Text))
+        if (!string.IsNullOrWhiteSpace(NameEntry.Text))
         {
-            var (success, err) = await AccountStore.TryUpdateDisplayNameAsync(_nameEntry.Text);
+            var (success, err) = await AccountStore.TryUpdateDisplayNameAsync(NameEntry.Text);
             if (!success) errors.Add(err);
         }
 
-        if (!string.IsNullOrWhiteSpace(_ageEntry.Text))
+        if (!string.IsNullOrWhiteSpace(AgeEntry.Text))
         {
-            var (success, err) = await AccountStore.TryUpdateAgeAsync(_ageEntry.Text);
+            var (success, err) = await AccountStore.TryUpdateAgeAsync(AgeEntry.Text);
             if (!success) errors.Add(err);
         }
 
@@ -250,18 +123,78 @@ public sealed class SettingsPage : ContentPage
         await DisplayAlertAsync("Готово", "Данные профиля обновлены.", "OK");
     }
 
-    private async void OnChangeDirections(object? sender, EventArgs e)
+    private async void OnChangePasswordClicked(object? sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new ChangePasswordPage());
+    }
+
+    private async void OnChangeDirectionsClicked(object? sender, EventArgs e)
     {
         await AccountStore.ResetOnboardingAsync();
         App.ResetRootPage();
     }
 
-    private async Task ShareApp()
+    // ── Доступность ───────────────────────────────────────────────
+
+    private async void OnLargeTextToggled(object? sender, ToggledEventArgs e)
+    {
+        await SettingsService.SetLargeTextAsync(e.Value);
+        SettingsService.ApplyAll();
+    }
+
+    // ── Звук ──────────────────────────────────────────────────────
+
+    private async void OnSoundToggled(object? sender, ToggledEventArgs e)
+    {
+        await SettingsService.SetSoundEnabledAsync(e.Value);
+    }
+
+    // ── Уведомления ───────────────────────────────────────────────
+
+    private async void OnNotifToggled(object? sender, ToggledEventArgs e)
+    {
+        if (e.Value && DeviceInfo.Platform == DevicePlatform.Android && DeviceInfo.Version.Major >= 13)
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.PostNotifications>();
+            if (status != PermissionStatus.Granted)
+            {
+                status = await Permissions.RequestAsync<Permissions.PostNotifications>();
+                if (status != PermissionStatus.Granted)
+                {
+                    await DisplayAlertAsync("Ошибка",
+                        "Для уведомлений нужно разрешение. Включите его в настройках системы.",
+                        "OK");
+                    NotifSwitch.IsToggled = false;
+                    return;
+                }
+            }
+        }
+
+        NotificationService.IsEnabled = e.Value;
+        TimePickerSection.IsVisible = e.Value;
+        if (e.Value) await NotificationService.ScheduleDailyReminderAsync();
+        else NotificationService.CancelAll();
+    }
+
+    private async void OnNotifTimeChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(TimePicker.Time))
+        {
+            NotificationService.ReminderTime = NotificationTimePicker.Time ?? TimeSpan.FromHours(20);
+            if (NotificationService.IsEnabled)
+                await NotificationService.ScheduleDailyReminderAsync();
+        }
+    }
+
+    // ── О приложении ──────────────────────────────────────────────
+
+    private async void OnShareClicked(object? sender, EventArgs e)
     {
         var overall = await ProgressStore.GetOverallScoreAsync();
+        var version = SettingsService.AppVersion;
         var text = overall > 0
-            ? $"Тренирую мозг в CogniBoost! Мой индекс мозга: {overall} 🧠\nСкачать: {SettingsService.AppDownloadUrl}"
-            : $"Тренируй память, внимание и логику каждый день!\nCogniBoost: {SettingsService.AppDownloadUrl}";
+            ? $"CogniBoost v{version} — Тренирую мозг! Мой индекс мозга: {overall} 🧠\nСкачать: {SettingsService.AppDownloadUrl}"
+            : $"CogniBoost v{version} — Тренируй память, внимание и логику каждый день!\nСкачать: {SettingsService.AppDownloadUrl}";
 
         await Share.Default.RequestAsync(new ShareTextRequest
         {
@@ -271,7 +204,7 @@ public sealed class SettingsPage : ContentPage
         });
     }
 
-    private async Task ExportStats()
+    private async void OnExportClicked(object? sender, EventArgs e)
     {
         var overall = await ProgressStore.GetOverallScoreAsync();
         var games = await ProgressStore.GetGamesPlayedCountAsync();
@@ -310,7 +243,7 @@ public sealed class SettingsPage : ContentPage
         });
     }
 
-    private async Task ResetProgress()
+    private async void OnResetProgressClicked(object? sender, EventArgs e)
     {
         var first = await DisplayAlertAsync(
             "Сброс прогресса",
@@ -326,126 +259,5 @@ public sealed class SettingsPage : ContentPage
 
         await AccountStore.ResetProgressAsync();
         await DisplayAlertAsync("Готово", "Прогресс сброшен.", "OK");
-    }
-
-    // ── Вспомогательные ──────────────────────────────────────────────
-    private Border BuildSection(string title, View content)
-    {
-        return new Border
-        {
-            StrokeShape = new RoundRectangle { CornerRadius = 16 },
-            Stroke = Colors.Transparent,
-            BackgroundColor = ThemeColors.CardBg,
-            Padding = new Thickness(16),
-            Content = new VerticalStackLayout
-            {
-                Spacing = 10,
-                Children =
-                {
-                    new Label
-                    {
-                        Text = title, FontSize = 13, FontAttributes = FontAttributes.Bold,
-                        TextColor = ThemeColors.TextMuted
-                    },
-                    content
-                }
-            }
-        };
-    }
-
-    private static Button MakeButton(string text, Color bg, Color? textColorC = null, Color? borderColorC = null)
-    {
-        var hasBorder = borderColorC != null && borderColorC != Colors.Transparent;
-        return new Button
-        {
-            Text = text,
-            BackgroundColor = bg,
-            TextColor = textColorC ?? Colors.White,
-            BorderColor = borderColorC ?? Colors.Transparent,
-            BorderWidth = hasBorder ? 1.5 : 0,
-            FontAttributes = FontAttributes.Bold,
-            HeightRequest = 50,
-            CornerRadius = 14
-        };
-    }
-
-    private View BuildToggleRow(string label, Switch sw)
-    {
-        var lbl = new Label
-        {
-            Text = label,
-            FontSize = 15,
-            TextColor = ThemeColors.TextPrimary,
-            VerticalOptions = LayoutOptions.Center
-        };
-        var grid = new Grid
-        {
-            ColumnDefinitions =
-            {
-                new ColumnDefinition { Width = GridLength.Star },
-                new ColumnDefinition { Width = GridLength.Auto }
-            },
-            Children = { lbl }
-        };
-        Grid.SetColumn(sw, 1);
-        grid.Children.Add(sw);
-        return grid;
-    }
-
-    private View BuildLabeledEntry(string label, Entry entry)
-    {
-        return new VerticalStackLayout
-        {
-            Spacing = 4,
-            Children =
-            {
-                new Label { Text = label, FontSize = 12, TextColor = ThemeColors.TextMuted },
-                new Border
-                {
-                    StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                    Stroke = ThemeColors.Border, StrokeThickness = 1,
-                    Padding = new Thickness(12, 4),
-                    Content = entry
-                }
-            }
-        };
-    }
-
-    private View BuildLabeledPicker(string label, Picker picker)
-    {
-        return new VerticalStackLayout
-        {
-            Spacing = 4,
-            Children =
-            {
-                new Label { Text = label, FontSize = 12, TextColor = ThemeColors.TextMuted },
-                new Border
-                {
-                    StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                    Stroke = ThemeColors.Border, StrokeThickness = 1,
-                    Padding = new Thickness(12, 4),
-                    Content = picker
-                }
-            }
-        };
-    }
-
-    private View BuildLabeledView(string label, View view)
-    {
-        return new VerticalStackLayout
-        {
-            Spacing = 4,
-            Children =
-            {
-                new Label { Text = label, FontSize = 12, TextColor = ThemeColors.TextMuted },
-                new Border
-                {
-                    StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                    Stroke = ThemeColors.Border, StrokeThickness = 1,
-                    Padding = new Thickness(12, 4),
-                    Content = view
-                }
-            }
-        };
     }
 }

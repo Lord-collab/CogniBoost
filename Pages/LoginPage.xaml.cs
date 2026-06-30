@@ -46,4 +46,25 @@ public partial class LoginPage : ContentPage
 
         App.ResetRootPage();
     }
+
+    private async void OnForgotPasswordClicked(object? sender, EventArgs e)
+    {
+        var username = UsernameEntry.Text?.Trim();
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            ErrorLabel.Text = "Сначала введите имя пользователя.";
+            ErrorLabel.IsVisible = true;
+            return;
+        }
+
+        var hint = await AccountStore.GetPasswordHintAsync(username);
+        if (hint is null)
+        {
+            ErrorLabel.Text = "Подсказка не найдена. Попробуйте вспомнить пароль.";
+            ErrorLabel.IsVisible = true;
+            return;
+        }
+
+        await DisplayAlertAsync("Подсказка для пароля", hint, "OK");
+    }
 }

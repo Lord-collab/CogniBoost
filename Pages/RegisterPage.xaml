@@ -4,25 +4,35 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     Title="Регистрация"
-    BackgroundColor="{StaticResource PageBackgroundLight}">
+    BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}">
 
     <ScrollView>
         <VerticalStackLayout Padding="24" Spacing="16">
 
-            <Label Text="Создать аккаунт" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource TextPrimaryLight}" />
+            <Label Text="Создать аккаунт" FontSize="28" FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
 
             <Entry x:Name="UsernameEntry" Placeholder="Имя пользователя"
-                   TextColor="{StaticResource TextPrimaryLight}" PlaceholderColor="{StaticResource TextMutedLight}"
-                   BackgroundColor="White" />
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                   PlaceholderColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray800}}" />
             <Entry x:Name="AgeEntry" Placeholder="Возраст" Keyboard="Numeric"
-                   TextColor="{StaticResource TextPrimaryLight}" PlaceholderColor="{StaticResource TextMutedLight}"
-                   BackgroundColor="White" />
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                   PlaceholderColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray800}}" />
             <Entry x:Name="PasswordEntry" Placeholder="Пароль" IsPassword="True"
-                   TextColor="{StaticResource TextPrimaryLight}" PlaceholderColor="{StaticResource TextMutedLight}"
-                   BackgroundColor="White" />
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                   PlaceholderColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray800}}" />
             <Entry x:Name="ConfirmEntry" Placeholder="Повторите пароль" IsPassword="True"
-                   TextColor="{StaticResource TextPrimaryLight}" PlaceholderColor="{StaticResource TextMutedLight}"
-                   BackgroundColor="White" />
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                   PlaceholderColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray800}}" />
+
+            <Entry x:Name="HintEntry" Placeholder="Подсказка для пароля (необязательно)"
+                   TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                   PlaceholderColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray800}}" />
 
             <Label
                 x:Name="ErrorLabel"

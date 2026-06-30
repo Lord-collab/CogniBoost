@@ -4,6 +4,14 @@ using SQLite;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Инициализация SQLite и миграция из Preferences.
+/// Таблицы: Users, GameHistory, TestHistory, Settings.
+///
+/// При первом запуске данные из Preferences (старая версия) мигрируются
+/// в SQLite. Это позволило перейти от плоского хранения к реляционной БД
+/// без потери данных пользователя.
+/// </summary>
 public static class DatabaseService
 {
     private static SQLiteAsyncConnection? _db;
@@ -32,6 +40,8 @@ public static class DatabaseService
             await _db.CreateTableAsync<GameResultEntity>();
             await _db.CreateTableAsync<TestResultEntity>();
             await _db.CreateTableAsync<SettingEntity>();
+
+            try { await _db.ExecuteAsync("ALTER TABLE Users ADD COLUMN PasswordHint TEXT"); } catch { }
 
             await MigrateFromPreferencesAsync();
             _initialized = true;
@@ -159,7 +169,7 @@ public static class DatabaseService
                 });
             }
         }
-        catch { }
+        catch { System.Diagnostics.Debug.WriteLine("[DB] Game history migration failed"); }
     }
 
     private static async Task MigrateTestHistoryAsync(string key)
@@ -185,7 +195,7 @@ public static class DatabaseService
                 });
             }
         }
-        catch { }
+        catch { System.Diagnostics.Debug.WriteLine("[DB] Test history migration failed"); }
     }
 
     private static async Task MigrateSettingAsync(string key)

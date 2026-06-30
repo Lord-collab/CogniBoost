@@ -60,6 +60,7 @@ public static class UnlockService
         }
         catch
         {
+            System.Diagnostics.Debug.WriteLine("[Unlock] Failed to deserialize unlocked games");
             return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
     }
