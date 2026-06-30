@@ -12,7 +12,7 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnCreate(savedInstanceState);
 
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.Tiramisu)
+        if (OperatingSystem.IsAndroidVersionAtLeast(33))
         {
             if (CheckSelfPermission(Manifest.Permission.PostNotifications) != Permission.Granted)
             {

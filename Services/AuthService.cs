@@ -88,6 +88,12 @@ public static class AuthService
             return false;
         }
 
+        if ((password ?? string.Empty).Contains(' '))
+        {
+            error = "Пароль не должен содержать пробелы.";
+            return false;
+        }
+
         if ((password ?? string.Empty).Length < 6 || !password!.Any(char.IsDigit))
         {
             error = "Пароль должен быть не короче 6 символов и содержать цифру.";
@@ -227,6 +233,9 @@ public static class AuthService
             else
                 return (false, "Неверный текущий пароль.");
         }
+
+        if ((newPassword ?? string.Empty).Contains(' '))
+            return (false, "Пароль не должен содержать пробелы.");
 
         if ((newPassword ?? string.Empty).Length < 6 || !newPassword!.Any(char.IsDigit))
             return (false, "Новый пароль: не короче 6 символов и должен содержать цифру.");

@@ -3,7 +3,9 @@ using CogniBoost.Models;
 namespace CogniBoost.Services;
 
 /// <summary>
-/// Facade that delegates to the new single-responsibility services.
+/// Фасад для AuthService + UserDataService.
+/// Упрощает доступ к аутентификации и профилю — один класс вместо двух
+/// для всех страниц приложения. При рефакторинге вызывайте сервисы напрямую.
 /// </summary>
 public static class AccountStore
 {

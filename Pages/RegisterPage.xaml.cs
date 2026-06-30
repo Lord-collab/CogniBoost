@@ -2,6 +2,7 @@ using CogniBoost.Services;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Страница регистрации: имя, возраст, пароль, подсказка, подтверждение.</summary>
 public partial class RegisterPage : ContentPage
 {
     public RegisterPage()

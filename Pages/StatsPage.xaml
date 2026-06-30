@@ -64,6 +64,33 @@
                     BackgroundColor="{StaticResource Primary}"
                     TextColor="White" HeightRequest="50" CornerRadius="14" FontAttributes="Bold" />
 
+            <!-- AI-анализ -->
+            <Button x:Name="AiButton" Text="🧠  AI-анализ прогресса" Clicked="OnAiAnalysisClicked"
+                    BackgroundColor="{StaticResource Warning}"
+                    TextColor="White" HeightRequest="50" CornerRadius="14" FontAttributes="Bold" />
+            <Border x:Name="AiResultCard" IsVisible="False"
+                    StrokeShape="RoundRectangle 16" Stroke="Transparent"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="8">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Label Text="🧠" FontSize="22" VerticalOptions="Center" />
+                        <Label Grid.Column="1" Text="AI-анализ" FontSize="15" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}"
+                               VerticalOptions="Center" Margin="8,0,0,0" />
+                        <Label Grid.Column="2" x:Name="AiCloseLabel" Text="✕" FontSize="18"
+                               TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
+                               VerticalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnAiCloseClicked" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </Grid>
+                    <Label x:Name="AiResultText" Text="" FontSize="13" LineBreakMode="WordWrap"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimaryLight}, Dark={StaticResource TextPrimaryDark}}" />
+                </VerticalStackLayout>
+            </Border>
+
             <!-- График динамики -->
             <Border StrokeShape="RoundRectangle 16" Stroke="Transparent"
                     BackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
@@ -76,6 +103,8 @@
                                TextColor="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}"
                                Grid.Column="1" VerticalOptions="Center" />
                     </Grid>
+                    <FlexLayout x:Name="ChartChips" Wrap="Wrap" JustifyContent="Start"
+                                AlignItems="Center" />
                     <GraphicsView x:Name="ChartView" HeightRequest="130" />
                 </VerticalStackLayout>
             </Border>

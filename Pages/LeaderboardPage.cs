@@ -3,6 +3,7 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Таблица лидеров: онлайн-рейтинг из Supabase или локальный фолбэк.</summary>
 public sealed class LeaderboardPage : ContentPage
 {
     private readonly VerticalStackLayout _list = new() { Spacing = 8 };

@@ -3,6 +3,7 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Экран блокировки после 30 минут неактивности — запрашивает пароль.</summary>
 public sealed class SessionLockPage : ContentPage
 {
     private readonly Entry _passwordEntry = new() { Placeholder = "Введи пароль", IsPassword = true };

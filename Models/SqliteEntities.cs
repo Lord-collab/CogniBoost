@@ -2,6 +2,7 @@ using SQLite;
 
 namespace CogniBoost.Models;
 
+/// <summary>Пользователь: аутентификация, профиль, прогресс, достижения.</summary>
 [Table("Users")]
 public sealed class UserEntity
 {
@@ -24,6 +25,7 @@ public sealed class UserEntity
     public string? PasswordHint { get; set; }
 }
 
+/// <summary>Результат одной игровой сессии в истории.</summary>
 [Table("GameHistory")]
 public sealed class GameResultEntity
 {
@@ -39,6 +41,7 @@ public sealed class GameResultEntity
     public DateTime PlayedAtUtc { get; set; }
 }
 
+/// <summary>Результат прохождения теста (IQ, память, логика...).</summary>
 [Table("TestHistory")]
 public sealed class TestResultEntity
 {
@@ -54,6 +57,7 @@ public sealed class TestResultEntity
     public DateTime PlayedAtUtc { get; set; }
 }
 
+/// <summary>Ключ-значение для настроек (тема, звук, крупный текст).</summary>
 [Table("Settings")]
 public sealed class SettingEntity
 {

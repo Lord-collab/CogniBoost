@@ -1,45 +1,45 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<Shell
-    x:Class="CogniBoost.AppShell"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:pages="clr-namespace:CogniBoost.Pages"
-    Shell.TabBarBackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
-    Shell.TabBarForegroundColor="{StaticResource Primary}"
-    Shell.TabBarTitleColor="{StaticResource Primary}"
-    Shell.TabBarUnselectedColor="{StaticResource Gray400}"
-    Title="CogniBoost">
+    <Shell
+        x:Class="CogniBoost.AppShell"
+        xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+        xmlns:pages="clr-namespace:CogniBoost.Pages"
+        Shell.TabBarBackgroundColor="{AppThemeBinding Light={StaticResource CardBackgroundLight}, Dark={StaticResource CardBackgroundDark}}"
+        Shell.TabBarForegroundColor="{StaticResource Primary}"
+        Shell.TabBarTitleColor="{StaticResource Primary}"
+        Shell.TabBarUnselectedColor="{StaticResource Gray400}"
+        Title="CogniBoost">
 
-    <TabBar>
-        <ShellContent
-            Title="Главная"
-            Route="home"
-            Icon="{x:Null}"
-            ContentTemplate="{DataTemplate pages:TrainingPage}" />
+        <TabBar>
+            <ShellContent
+                Title="Главная"
+                Route="home"
+                Icon="tab_home.png"
+                ContentTemplate="{DataTemplate pages:TrainingPage}" />
 
-        <ShellContent
-            Title="Игры"
-            Route="games"
-            Icon="{x:Null}"
-            ContentTemplate="{DataTemplate pages:GamesPage}" />
+            <ShellContent
+                Title="Игры"
+                Route="games"
+                Icon="tab_games.png"
+                ContentTemplate="{DataTemplate pages:GamesPage}" />
 
-        <ShellContent
-            Title="Тесты"
-            Route="tests"
-            Icon="{x:Null}"
-            ContentTemplate="{DataTemplate pages:TestsPage}" />
+            <ShellContent
+                Title="Тесты"
+                Route="tests"
+                Icon="tab_tests.png"
+                ContentTemplate="{DataTemplate pages:TestsPage}" />
 
-        <ShellContent
-            Title="Прогресс"
-            Route="stats"
-            Icon="{x:Null}"
-            ContentTemplate="{DataTemplate pages:StatsPage}" />
+            <ShellContent
+                Title="Прогресс"
+                Route="stats"
+                Icon="tab_stats.png"
+                ContentTemplate="{DataTemplate pages:StatsPage}" />
 
-        <ShellContent
-            Title="Профиль"
-            Route="profile"
-            Icon="{x:Null}"
-            ContentTemplate="{DataTemplate pages:ProfilePage}" />
-    </TabBar>
+            <ShellContent
+                Title="Профиль"
+                Route="profile"
+                Icon="tab_profile.png"
+                ContentTemplate="{DataTemplate pages:ProfilePage}" />
+        </TabBar>
 
-</Shell>
+    </Shell>

@@ -2,6 +2,20 @@ using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Серия дней (streak) — срабатывает ТОЛЬКО при завершении игры или теста
+/// (GameBasePage.FinishAsync / TestSessionPage.FinishAsync).
+/// Просто открыть приложение — недостаточно.
+///
+/// Логика:
+///   — Первая игра → streak = 1.
+///   — Игра на следующий день → streak + 1.
+///   — Пропуск дня → streak сбрасывается на 1.
+///   — Каждые 3 дня подряд → бонус +10 баллов (3→10, 6→20, 9→30…).
+///
+/// Данные хранятся в UserEntity (SQLite). При переустановке приложения
+/// (особенно debug-деплой из VS) БД может быть удалена, и streak обнулится.
+/// </summary>
 public static class StreakService
 {
     private const int BonusPerStreakDay = 10;

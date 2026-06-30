@@ -3,6 +3,7 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Список всех достижений (24 шт.) с индикатором разблокировки и датой.</summary>
 public sealed class AchievementsPage : ContentPage
 {
     public AchievementsPage()

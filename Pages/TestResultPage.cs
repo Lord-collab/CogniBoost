@@ -4,6 +4,7 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Экран результата теста: IQ, баллы, точность, кнопки поделиться/повтора.</summary>
 public sealed class TestResultPage : ContentPage
 {
     public TestResultPage(TestResult result, IReadOnlyList<Achievement>? newAchievements = null)

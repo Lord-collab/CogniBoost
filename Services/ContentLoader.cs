@@ -2,6 +2,11 @@ using System.Text.Json;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Загрузчик JSON-файлов из Resources/Raw/games/.
+/// LoadListAsync — десериализация в List&lt;T&gt;.
+/// LoadSingleAsync — десериализация в один объект.
+/// </summary>
 public static class ContentLoader
 {
     private static readonly JsonSerializerOptions JsonOpts = new()

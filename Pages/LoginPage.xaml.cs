@@ -2,6 +2,7 @@ using CogniBoost.Services;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Страница входа: username + пароль + кнопка «Забыли пароль?».</summary>
 public partial class LoginPage : ContentPage
 {
     public LoginPage()

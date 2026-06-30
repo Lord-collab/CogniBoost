@@ -2,6 +2,10 @@ using CogniBoost.Pages;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Показывает обучение перед первой игрой. Текст берётся из GameCatalog
+/// (словарь Tutorials). После просмотра — флаг в Preferences больше не показывать.
+/// </summary>
 public static class GameTutorialService
 {
     private const string SeenPrefix = "cb_tutorial_";

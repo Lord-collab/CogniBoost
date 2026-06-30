@@ -4,6 +4,7 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Магазин: покупка платных игр за звёзды с баланса.</summary>
 public sealed class StorePage : ContentPage
 {
     private readonly Label _balanceLabel = new();

@@ -4,6 +4,7 @@ using CogniBoost.Services;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Онбординг после регистрации: выбор направлений развития (скиллов).</summary>
 public partial class OnboardingPage : ContentPage
 {
     private readonly List<SkillChoice> _choices;

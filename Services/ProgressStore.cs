@@ -145,6 +145,51 @@ public static class ProgressStore
         return scores.Count == 0 ? 0 : (int)Math.Round(scores.Average());
     }
 
+    public static async Task<List<(DateTime Date, double AvgAccuracy)>> GetSkillHistoryAsync(
+        BrainSkill skill, int days = 30)
+    {
+        var userKey = AccountStore.GetCurrentUsernameKey();
+        var since = DateTime.UtcNow.Date.AddDays(-days);
+        var history = await DatabaseService.Db
+            .Table<GameResultEntity>()
+            .Where(g => g.UsernameKey == userKey
+                && g.Skill == (int)skill
+                && g.PlayedAtUtc >= since)
+            .ToListAsync();
+
+        return history
+            .GroupBy(r => r.PlayedAtUtc.Date)
+            .OrderBy(g => g.Key)
+            .Select(g => (
+                g.Key,
+                g.Average(r => r.MaxScore > 0
+                    ? Math.Clamp(r.Score / (double)r.MaxScore, 0, 1) * 100
+                    : 0)))
+            .ToList();
+    }
+
+    public static async Task<List<(DateTime Date, double AvgAccuracy)>> GetOverallHistoryAsync(
+        int days = 30)
+    {
+        var userKey = AccountStore.GetCurrentUsernameKey();
+        var since = DateTime.UtcNow.Date.AddDays(-days);
+        var history = await DatabaseService.Db
+            .Table<GameResultEntity>()
+            .Where(g => g.UsernameKey == userKey
+                && g.PlayedAtUtc >= since)
+            .ToListAsync();
+
+        return history
+            .GroupBy(r => r.PlayedAtUtc.Date)
+            .OrderBy(g => g.Key)
+            .Select(g => (
+                g.Key,
+                g.Average(r => r.MaxScore > 0
+                    ? Math.Clamp(r.Score / (double)r.MaxScore, 0, 1) * 100
+                    : 0)))
+            .ToList();
+    }
+
     // ---------- Tests ----------
 
     public static async Task AddTestResultAsync(TestResult result)

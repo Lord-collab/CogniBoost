@@ -4,6 +4,7 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Экран результата игры: счёт, точность, бонусы, стрик, кнопки поделиться/повтора.</summary>
 public class GameResultPage : ContentPage
 {
     public GameResultPage(

@@ -3,6 +3,11 @@ using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Система открытия (покупки) игр за звёзды.
+/// Кеш открытых игр хранится в памяти и синхронизируется с
+/// UserEntity.UnlockedGamesJson (SQLite). Стартовые игры бесплатны.
+/// </summary>
 public static class UnlockService
 {
     public static bool IsUnlocked(GameDefinition game)

@@ -1,5 +1,10 @@
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Генерация и воспроизведение звуков (WAV) без внешних файлов.
+/// Correct / Wrong / Complete / Tick — синтезируются на лету через GenerateWav.
+/// Воспроизведение только на Android (MediaPlayer). На других платформах — тишина.
+/// </summary>
 public static class SoundService
 {
     private static readonly byte[] CorrectWav = GenerateWav(523, 0.12);

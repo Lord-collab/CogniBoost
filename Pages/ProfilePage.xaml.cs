@@ -4,6 +4,7 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Вкладка «Профиль»: аватар, имя, возраст, стрик, баланс, заработано, достижения, навыки.</summary>
 public partial class ProfilePage : ContentPage
 {
     public ProfilePage()

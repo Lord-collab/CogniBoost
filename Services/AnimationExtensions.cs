@@ -1,5 +1,9 @@
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Вспомогательные анимации для VisualElement:
+/// Pop (сжатие+возврат), FadeIn (появление), Shake (тряска), Pulse (пульсация).
+/// </summary>
 public static class AnimationExtensions
 {
     public static async Task PopAsync(this VisualElement view)

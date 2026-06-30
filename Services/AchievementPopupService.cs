@@ -2,6 +2,11 @@ using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Показывает анимированный попап нового достижения.
+/// Карточка влетает сверху с затемнением фона. Авто-закрытие через 2.5 с
+/// или по тапу. Несколько достижений показываются последовательно.
+/// </summary>
 public static class AchievementPopupService
 {
     public static async Task ShowAsync(ContentPage page, IReadOnlyList<Achievement> achievements)

@@ -21,6 +21,9 @@ namespace CogniBoost.Pages;
 public partial class StatsPage : ContentPage
 {
     private bool _showGames = true;
+    private BrainSkill? _selectedChartSkill;
+
+    private sealed record ChartChip(string Label, BrainSkill? Skill, Color Accent);
 
     public StatsPage()
     {
@@ -42,9 +45,59 @@ public partial class StatsPage : ContentPage
         RankLabel.Text = GetRank(overall);
 
         BuildRing(overall);
+        BuildChartChips();
         BuildChart();
         BuildSkills();
         BuildHistory();
+    }
+
+    // ── Чипы выбора графика ──────────────────────────────────────────
+    private void BuildChartChips()
+    {
+        ChartChips.Children.Clear();
+
+        var chips = new List<ChartChip>
+        {
+            new("Точность", null, ThemeColors.Accent),
+            new("Память 🧠", BrainSkill.Memory, BrainSkillInfo.Accent(BrainSkill.Memory)),
+            new("Внимание 🎯", BrainSkill.Focus, BrainSkillInfo.Accent(BrainSkill.Focus)),
+            new("Язык 💬", BrainSkill.Language, BrainSkillInfo.Accent(BrainSkill.Language)),
+            new("Логика 🧩", BrainSkill.Logic, BrainSkillInfo.Accent(BrainSkill.Logic)),
+        };
+
+        foreach (var chip in chips)
+        {
+            var isActive = _selectedChartSkill == chip.Skill
+                || (_selectedChartSkill is null && chip.Skill is null);
+
+            var border = new Border
+            {
+                StrokeShape = new RoundRectangle { CornerRadius = 10 },
+                Stroke = isActive ? Colors.Transparent : ThemeColors.Border,
+                BackgroundColor = isActive ? chip.Accent : ThemeColors.CardBg,
+                Padding = new Thickness(12, 6),
+                Margin = new Thickness(0, 0, 6, 6),
+                Content = new Label
+                {
+                    Text = chip.Label,
+                    FontSize = 12,
+                    FontAttributes = isActive ? FontAttributes.Bold : FontAttributes.None,
+                    TextColor = isActive ? Colors.White : chip.Accent
+                }
+            };
+
+            var tap = new TapGestureRecognizer();
+            var captured = chip.Skill;
+            tap.Tapped += (_, _) =>
+            {
+                _selectedChartSkill = captured;
+                BuildChartChips();
+                BuildChart();
+            };
+            border.GestureRecognizers.Add(tap);
+
+            ChartChips.Children.Add(border);
+        }
     }
 
     private static string GetRank(int score) => score switch
@@ -75,20 +128,45 @@ public partial class StatsPage : ContentPage
     // ── График ───────────────────────────────────────────────────────
     private async void BuildChart()
     {
-        var history = (await ProgressStore.GetGameHistoryAsync())
-            .Take(14)
-            .Reverse()
-            .Select(r => (double)r.AccuracyPercent)
-            .ToList();
-
-        if (history.Count < 2)
+        if (_selectedChartSkill is null)
         {
-            ChartView.Drawable = new EmptyChartDrawable(ThemeColors.TextMuted);
-            return;
-        }
+            // точность — последние 14 игр (как было)
+            var history = (await ProgressStore.GetGameHistoryAsync())
+                .Take(14)
+                .Reverse()
+                .Select(r => (double)r.AccuracyPercent)
+                .ToList();
 
-        ChartView.Drawable = new LineChartDrawable(history, ThemeColors.Accent,
-            ThemeColors.Divider, ThemeColors.CardBg2, ThemeColors.TextMuted);
+            ChartPeriodLabel.Text = "последние 14 игр";
+
+            if (history.Count < 2)
+            {
+                ChartView.Drawable = new EmptyChartDrawable(ThemeColors.TextMuted);
+                return;
+            }
+
+            ChartView.Drawable = new LineChartDrawable(history, ThemeColors.Accent,
+                ThemeColors.Divider, ThemeColors.CardBg2, ThemeColors.TextMuted);
+        }
+        else
+        {
+            // дневная средняя точность по выбранному навыку за 30 дней
+            var skill = _selectedChartSkill.Value;
+            var history = await ProgressStore.GetSkillHistoryAsync(skill, 30);
+            var values = history.Select(h => h.AvgAccuracy).ToList();
+
+            ChartPeriodLabel.Text = $"последние 30 дней · {BrainSkillInfo.Title(skill)}";
+
+            if (values.Count < 2)
+            {
+                ChartView.Drawable = new EmptyChartDrawable(ThemeColors.TextMuted);
+                return;
+            }
+
+            var accent = BrainSkillInfo.Accent(skill);
+            ChartView.Drawable = new LineChartDrawable(values, accent,
+                ThemeColors.Divider, ThemeColors.CardBg2, ThemeColors.TextMuted);
+        }
     }
 
     // ── Навыки ───────────────────────────────────────────────────────
@@ -302,6 +380,49 @@ public partial class StatsPage : ContentPage
 
     private async void OnLeaderboardClicked(object? sender, EventArgs e)
         => await Shell.Current.GoToAsync("leaderboard");
+
+    // ── AI-анализ ─────────────────────────────────────────────────────
+    private async void OnAiAnalysisClicked(object? sender, EventArgs e)
+    {
+        var key = await AiAnalysisService.GetApiKeyAsync();
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            var result = await DisplayPromptAsync(
+                "🧠 AI-анализ",
+                "Введи ключ API OpenRouter (https://openrouter.ai/keys).\n" +
+                "Можно использовать бесплатные модели (DeepSeek, Mistral).",
+                "Сохранить", "Отмена",
+                placeholder: "sk-or-v1-...",
+                maxLength: 200);
+
+            if (string.IsNullOrWhiteSpace(result)) return;
+            await AiAnalysisService.SetApiKeyAsync(result);
+            key = result;
+        }
+
+        AiResultCard.IsVisible = false;
+        AiButton.IsEnabled = false;
+        AiButton.Text = "🧠  Анализирую...";
+
+        var analysis = await AiAnalysisService.AnalyzeProgressAsync();
+
+        AiButton.IsEnabled = true;
+        AiButton.Text = "🧠  AI-анализ прогресса";
+
+        if (string.IsNullOrWhiteSpace(analysis))
+        {
+            await DisplayAlertAsync("AI-анализ", "Не удалось получить анализ. Проверь интернет и ключ API.", "OK");
+            return;
+        }
+
+        AiResultText.Text = analysis;
+        AiResultCard.IsVisible = true;
+    }
+
+    private void OnAiCloseClicked(object? sender, TappedEventArgs e)
+    {
+        AiResultCard.IsVisible = false;
+    }
 }
 
 // ── Отрисовка графика ────────────────────────────────────────────────

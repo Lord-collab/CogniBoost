@@ -3,6 +3,10 @@ using CogniBoost.Models;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Управление профилем пользователя: имя, возраст, аватар, выбранные навыки,
+/// сброс прогресса. Все операции — на текущем авторизованном пользователе.
+/// </summary>
 public static class UserDataService
 {
     public static async Task<bool> IsCurrentUserOnboardedAsync()

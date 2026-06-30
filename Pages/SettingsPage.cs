@@ -6,6 +6,7 @@ using Microsoft.Maui.Devices;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Настройки приложения: тема, звук, крупный текст, уведомления, сброс, поделиться.</summary>
 public partial class SettingsPage : ContentPage
 {
     private static readonly (string Label, string Value)[] Themes =

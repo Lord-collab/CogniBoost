@@ -1,5 +1,9 @@
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Тактильная обратная связь (вибрация). Click / Error / Success.
+/// Тихий catch — вибрация не критична, на некоторых устройствах не поддерживается.
+/// </summary>
 public static class HapticService
 {
     public static void Click()

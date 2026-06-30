@@ -94,19 +94,39 @@ public partial class TrainingPage : ContentPage
     {
         DailyLayout.Children.Clear();
 
-        var selectedSkills = profile?.SelectedSkills ?? new List<BrainSkill>();
-        IEnumerable<GameDefinition> pool = GameCatalog.All.Where(UnlockService.IsUnlocked);
+        var unlocked = GameCatalog.All.Where(UnlockService.IsUnlocked).ToList();
 
-        if (selectedSkills.Count > 0)
+        // ранжируем навыки от самого слабого к сильному
+        var skillScores = new List<(BrainSkill Skill, int Score)>();
+        foreach (var meta in BrainSkillInfo.All)
         {
-            var preferred = pool.Where(g => selectedSkills.Contains(g.Skill)).ToList();
-            if (preferred.Count > 0) pool = preferred;
+            var score = await ProgressStore.GetSkillScoreAsync(meta.Skill);
+            skillScores.Add((meta.Skill, score));
+        }
+        var ranked = skillScores.OrderBy(s => s.Score).Select(s => s.Skill).ToList();
+
+        // набираем до 3 игр: сначала из самого слабого навыка, потом следующего и т.д.
+        var picked = new List<GameDefinition>();
+        var usedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var skill in ranked)
+        {
+            var candidates = unlocked
+                .Where(g => g.Skill == skill && usedIds.Add(g.Id))
+                .ToList();
+            picked.AddRange(candidates);
+            if (picked.Count >= 3) break;
         }
 
-        var rng = new Random();
-        var daily = pool.OrderBy(_ => rng.Next()).Take(3).ToList();
+        // если не набрали (нет данных / ни одна игра не открыта) — случайные
+        if (picked.Count == 0)
+        {
+            var rng = new Random();
+            picked = unlocked.OrderBy(_ => rng.Next()).Take(3).ToList();
+        }
 
-        if (daily.Count == 0)
+        picked = picked.Take(3).ToList();
+
+        if (picked.Count == 0)
         {
             DailyLayout.Children.Add(new EmptyState(
                 "🎯", "Нет доступных игр",
@@ -115,7 +135,7 @@ public partial class TrainingPage : ContentPage
             return;
         }
 
-        foreach (var game in daily)
+        foreach (var game in picked)
             DailyLayout.Children.Add(await BuildDailyCardAsync(game));
     }
 

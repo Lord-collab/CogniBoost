@@ -4,6 +4,10 @@ using CogniBoost.Services;
 
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Ежедневное задание: случайная (но детерминированная — от даты) игра
+/// из числа открытых. За прохождение задания — удвоенные бонусы (×2).
+/// </summary>
 public static class DailyChallengeService
 {
     public static GameDefinition? GetTodayChallenge()

@@ -2,6 +2,7 @@ using CogniBoost.Services;
 
 namespace CogniBoost.Pages;
 
+/// <summary>Стартовый экран: регистрация, вход или гостевой режим.</summary>
 public partial class WelcomePage : ContentPage
 {
     public WelcomePage()

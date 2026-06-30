@@ -1,5 +1,10 @@
 namespace CogniBoost.Services;
 
+/// <summary>
+/// Настройки приложения: тема (светлая/тёмная/системная), крупный текст,
+/// звук. Хранятся в таблице Settings (SQLite). ApplyAll() применяет тему
+/// глобально и рекурсивно корректирует FontSize у всех Label/Button/Entry.
+/// </summary>
 public static class SettingsService
 {
     private const string ThemeKey = "cb_theme";
