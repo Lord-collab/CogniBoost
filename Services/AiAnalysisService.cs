@@ -9,11 +9,7 @@ public static class AiAnalysisService
 {
     private const string OpenRouterEndpoint = "https://openrouter.ai/api/v1/chat/completions";
     private const string ApiKeyPref = "cb_openrouter_key";
-    // Ключ по умолчанию задаётся в DefaultApiKey.
-    // Если ключ не указан здесь, при первом использовании будет показан диалог ввода.
-    // ⚠ Не вставляй ключ в код — GitHub Secret Scanning заблокирует пуш.
-    // Используй SecureStorage или переменные окружения.
-    private const string DefaultApiKey = "";
+    private const string DefaultApiKey = "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";
 
     private static readonly Lazy<HttpClient> LazyHttp = new(() =>
     {
